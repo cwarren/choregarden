@@ -5,8 +5,10 @@ node_modules/
 logs/
 *.log
 
-# Environment variables
+# Ignore .env files
 .env
+backend/.env
+frontend/.env
 
 # Build outputs
 dist/

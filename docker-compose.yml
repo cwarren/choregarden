@@ -1,36 +1,62 @@
 version: '3.8'
 
 services:
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    ports:
-      - "5000:5000"
-    env_file:
-      - ./backend/.env
-    depends_on:
-      - postgres
-
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
     ports:
-      - "3000:3000"
-    env_file:
-      - ./frontend/.env
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - choregarden-network
 
-  postgres:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+    environment:
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_USER=${APP_DB_USER}
+      - POSTGRES_PASSWORD=${APP_DB_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    depends_on:
+      - database
+    networks:
+      - choregarden-network
+    env_file:
+      - ./.env
+
+  database:
     image: postgres:15
     environment:
-      POSTGRES_USER: choregarden
-      POSTGRES_PASSWORD: choregarden
-      POSTGRES_DB: choregarden
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - choregarden-data:/var/lib/postgresql/data
+    command: >
+      sh -c "
+      docker-entrypoint.sh postgres &
+      sleep 5 &&
+      if ! psql -U ${POSTGRES_USER} -tc \"SELECT 1 FROM pg_roles WHERE rolname='${APP_DB_USER}';\" | grep -q 1; then
+        psql -U ${POSTGRES_USER} -c \"CREATE USER ${APP_DB_USER} WITH PASSWORD '${APP_DB_PASSWORD}';\";
+      fi &&
+      psql -U ${POSTGRES_USER} -c \"ALTER USER ${APP_DB_USER} WITH PASSWORD '${APP_DB_PASSWORD}';\" &&
+      psql -U ${POSTGRES_USER} -c \"GRANT ALL PRIVILEGES ON DATABASE ${POSTGRES_DB} TO ${APP_DB_USER};\" &&
+      wait
+      "
     ports:
       - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - choregarden-network
+    env_file:
+      - ./.env
 
 volumes:
-  postgres_data:
+  choregarden-data:
+
+networks:
+  choregarden-network:
+    driver: bridge
