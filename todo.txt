@@ -1,0 +1,11 @@
+latest done:
+* fe, be, db running locally and talking to each other
+
+next steps:
+* github CI/CD
+
+longer term:
+* AWS general set up (org, user(s))
+* AWS CLI set up for local use (may already be working - it's been a while...)
+* use of terraform to create cg infrastructure
+* first deploy
