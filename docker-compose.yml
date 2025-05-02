@@ -15,8 +15,9 @@ services:
     build:
       context: ./backend
     ports:
-      - "${BACKEND_PORT}:${BACKEND_PORT}"
+      - "5000:5000"
     environment:
+      - BACKEND_PORT=5000
       - POSTGRES_HOST=${POSTGRES_HOST}
       - POSTGRES_USER=${APP_DB_USER}
       - POSTGRES_PASSWORD=${APP_DB_PASSWORD}
