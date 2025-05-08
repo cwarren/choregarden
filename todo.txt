@@ -1,11 +1,18 @@
 latest done:
-* fe, be, db running locally and talking to each other
+* github CI/CD very basics working, sans DB
 
 next steps:
-* github CI/CD
+* add DB stuff to ci-cd flow
+* change all the usernames and passwords, now that relevant things are in secrets and .env's
+* add simple-but-not-trivial BE tests
+* * probably requires installing support packages
+* add simple-but-not-trivial FE tests
+* * probably requires installing support packages
 
 longer term:
 * AWS general set up (org, user(s))
 * AWS CLI set up for local use (may already be working - it's been a while...)
+* establish dev environment
 * use of terraform to create cg infrastructure
-* first deploy
+* first manual deploy
+* deploy via ci-cd (to dev environment)

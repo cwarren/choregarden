@@ -31,10 +31,25 @@ jobs:
         run: |
           npm install
 
-      - name: Run backend tests
+      - name: Start temporary PostgreSQL database
+        run: |
+          docker run --name temp-postgres -e POSTGRES_USER=${{ secrets.POSTGRES_USER }} -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} -e POSTGRES_DB=${{ secrets.POSTGRES_DB }} -d -p 5432:5432 postgres:15
+
+      - name: Run backend tests with database
         working-directory: ./backend
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
         run: |
           npm test
+
+      - name: Stop and remove temporary PostgreSQL database
+        if: always()
+        run: |
+          docker stop temp-postgres
+          docker rm temp-postgres
 
       - name: Run frontend tests
         working-directory: ./frontend
