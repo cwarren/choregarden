@@ -1,4 +1,5 @@
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
 
 describe('Trivial Test', () => {
   it('should always pass', () => {
@@ -6,10 +7,10 @@ describe('Trivial Test', () => {
   });
 });
 
-const { Pool } = require('pg');
+import { Pool } from 'pg';
 
 describe('Database Connection Test', () => {
-  let pool;
+  let pool: Pool | undefined;
 
   beforeAll(() => {
     const user = process.env.POSTGRES_USER;

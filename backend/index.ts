@@ -1,8 +1,9 @@
-const express = require('express');
-const { Pool } = require('pg');
-const cors = require('cors');
-// Load environment variables from .env file
-require('dotenv').config();
+import express from 'express';
+import { Pool } from 'pg';
+import cors from 'cors';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 const port = process.env.BACKEND_PORT || 5000;
@@ -15,10 +16,10 @@ const pool = process.env.DATABASE_URL
   ? new Pool({ connectionString: process.env.DATABASE_URL })
   : new Pool({
       user: process.env.APP_DB_USER || 'unknown1',
-      host: process.env.POSTGRES_HOST || 'unknown2', // Use Docker service name
+      host: process.env.POSTGRES_HOST || 'unknown2',
       database: process.env.POSTGRES_DB || 'unknown3',
       password: process.env.APP_DB_PASSWORD || 'unknown4',
-      port: process.env.POSTGRES_PORT || 5432,
+      port: Number(process.env.POSTGRES_PORT) || 5432,
     });
 
 // Explicitly log the resolved host value
@@ -30,22 +31,22 @@ console.log('Database connection configuration:', {
   host: process.env.POSTGRES_HOST || 'unknown2',
   database: process.env.POSTGRES_DB || 'unknown3',
   password: process.env.APP_DB_PASSWORD || 'unknown4',
-  port: process.env.POSTGRES_PORT || 5432,
+  port: Number(process.env.POSTGRES_PORT) || 5432,
 });
 
 // Retry logic for database connection
-const connectWithRetry = (retries = 5, delay = 2000) => {
+const connectWithRetry = (retries = 5, delay = 2000): void => {
   if (retries === 0) {
     console.error('Failed to connect to the database after multiple attempts.');
     process.exit(1);
   }
 
-  pool.query('SELECT NOW()', (err, res) => {
+  pool.query('SELECT NOW()', (err: Error | null, res: { rows: { [key: string]: any }[] } | undefined) => {
     if (err) {
       console.error(`Database connection failed. Retrying in ${delay / 1000} seconds...`, err);
       setTimeout(() => connectWithRetry(retries - 1, delay), delay);
     } else {
-      console.log('Database connected:', res.rows[0]);
+      console.log('Database connected:', res?.rows[0]);
     }
   });
 };
@@ -54,7 +55,7 @@ const connectWithRetry = (retries = 5, delay = 2000) => {
 connectWithRetry();
 
 // Basic API endpoint
-app.get('/api/ping', (req, res) => {
+app.get('/api/ping', (req: express.Request, res: express.Response) => {
   res.json({ message: 'pong' });
 });
 
