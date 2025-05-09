@@ -62,3 +62,5 @@ app.get('/api/ping', (req: express.Request, res: express.Response) => {
 app.listen(port, () => {
   console.log(`Backend server is running on http://localhost:${port}`);
 });
+
+export { app };
