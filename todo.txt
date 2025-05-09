@@ -1,9 +1,7 @@
 latest done:
-* github CI/CD very basics working, sans DB
+* change all the usernames and passwords, now that relevant things are in secrets and .env's
 
 next steps:
-* add DB stuff to ci-cd flow
-* change all the usernames and passwords, now that relevant things are in secrets and .env's
 * add simple-but-not-trivial BE tests
 * * probably requires installing support packages
 * add simple-but-not-trivial FE tests
