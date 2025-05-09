@@ -56,9 +56,19 @@ if (process.env.NODE_ENV !== 'test') {
   connectWithRetry();
 }
 
-// Basic API endpoint
+// Basic API endpoints
 app.get('/api/ping', (req: express.Request, res: express.Response) => {
   res.json({ message: 'pong' });
+});
+app.get('/api/pingdeep', (req: express.Request, res: express.Response) => {
+  pool.query('SELECT NOW()', (err: Error | null, result: { rows: { [key: string]: any }[] } | undefined) => {
+    if (err) {
+      console.error('Error executing query', err);
+      return res.status(500).json({ error: 'Database query failed' });
+    }
+    console.log('Database query result:', result?.rows[0]);
+    res.json({ message: 'pong with DB connection', time: result?.rows[0] });
+  });
 });
 
 const server = app.listen(port, () => {
