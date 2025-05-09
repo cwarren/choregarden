@@ -51,16 +51,18 @@ const connectWithRetry = (retries = 5, delay = 2000): void => {
   });
 };
 
-// Call the retry logic
-connectWithRetry();
+// Call the retry logic only in non-test environments
+if (process.env.NODE_ENV !== 'test') {
+  connectWithRetry();
+}
 
 // Basic API endpoint
 app.get('/api/ping', (req: express.Request, res: express.Response) => {
   res.json({ message: 'pong' });
 });
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`Backend server is running on http://localhost:${port}`);
 });
 
-export { app };
+export { app, pool, server };
