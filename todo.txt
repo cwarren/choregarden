@@ -1,16 +1,13 @@
 latest done:
-* change all the usernames and passwords, now that relevant things are in secrets and .env's
-
-next steps:
-* add simple-but-not-trivial BE tests
-* * probably requires installing support packages
-* add simple-but-not-trivial FE tests
-* * probably requires installing support packages
-
-longer term:
 * AWS general set up (org, user(s))
 * AWS CLI set up for local use (may already be working - it's been a while...)
 * establish dev environment
+
+next steps:
+* validate tf networking by creating a temp ec2 instance that I can hit
+
+longer term:
 * use of terraform to create cg infrastructure
 * first manual deploy
 * deploy via ci-cd (to dev environment)
+* add simple-but-not-trivial FE tests

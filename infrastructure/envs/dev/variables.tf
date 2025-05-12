@@ -7,3 +7,9 @@ variable "aws_profile" {
   type    = string
   default = "choregarden-dev"
 }
+
+variable "create_nat_gateway" {
+  description = "Whether to create a NAT Gateway"
+  type        = bool
+  default     = true
+}

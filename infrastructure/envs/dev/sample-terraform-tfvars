@@ -1,0 +1,9 @@
+# Terraform variable overrides for dev environment
+
+# control the NAT Gateway by or dev, as it actually costs money (min of $30+ / month)
+create_nat_gateway = true
+
+# When not working actively, change that to
+#     create_nat_gateway = false
+# Then re-apply
+# > terraform apply
