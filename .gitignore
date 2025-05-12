@@ -21,6 +21,21 @@ docker-compose.override.yml
 *.tfstate.backup
 .terraform/
 
+# Terraform files
+*.tfstate
+*.tfstate.backup
+.terraform/
+crash.log
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+terraform.tfplan
+
+# Local override files
+.terraformrc
+.terraform.lock.hcl
+
 # Others
 .DS_Store
 .idea/
