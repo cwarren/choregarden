@@ -22,17 +22,17 @@ const pool = process.env.DATABASE_URL
       port: Number(process.env.POSTGRES_PORT) || 5432,
     });
 
-// Explicitly log the resolved host value
-console.log('Resolved database host:', process.env.POSTGRES_HOST || 'database');
-
-// Log the database connection configuration
-console.log('Database connection configuration:', {
-  user: process.env.APP_DB_USER || 'unknown1',
-  host: process.env.POSTGRES_HOST || 'unknown2',
-  database: process.env.POSTGRES_DB || 'unknown3',
-  password: process.env.APP_DB_PASSWORD || 'unknown4',
-  port: Number(process.env.POSTGRES_PORT) || 5432,
-});
+// Wrap sensitive console.log statements in a condition to check for development environment
+if (process.env.NODE_ENV === 'development') {
+  console.log('Resolved database host:', process.env.POSTGRES_HOST || 'database');
+  console.log('Database connection configuration:', {
+    user: process.env.APP_DB_USER || 'unknown1',
+    host: process.env.POSTGRES_HOST || 'unknown2',
+    database: process.env.POSTGRES_DB || 'unknown3',
+    password: process.env.APP_DB_PASSWORD || 'unknown4',
+    port: Number(process.env.POSTGRES_PORT) || 5432,
+  });
+}
 
 // Retry logic for database connection
 const connectWithRetry = (retries = 5, delay = 2000): void => {
