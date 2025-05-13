@@ -39,3 +39,9 @@ module "vpc" {
   }
 }
 
+module "ecr_backend" {
+  source      = "../../modules/ecr_repository"
+  name        = "choregarden-backend"
+  environment = "dev"
+}
+
