@@ -45,3 +45,15 @@ module "ecr_backend" {
   environment = "dev"
 }
 
+module "backend_secret" {
+  source      = "../../modules/secrets"
+  name        = "choregarden-backend-dev"
+  description = "Chore Garden backend secrets (dev)"
+  environment = "dev"
+}
+
+module "app_backend" {
+  source     = "../../modules/app_backend"
+  name       = "choregarden-backend-dev"
+  secret_arn = module.backend_secret.arn
+}
