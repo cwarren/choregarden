@@ -53,7 +53,11 @@ module "backend_secret" {
 }
 
 module "app_backend" {
-  source     = "../../modules/app_backend"
-  name       = "choregarden-backend-dev"
-  secret_arn = module.backend_secret.arn
+  source       = "../../modules/app_backend"
+  name         = "choregarden-backend-dev"
+  aws_region   = var.aws_region
+  secret_arn   = module.backend_secret.arn
+  image_uri    = "966559697526.dkr.ecr.us-east-1.amazonaws.com/choregarden-backend:latest"
+  public_subnets = module.vpc.public_subnets
+  vpc_id         = module.vpc.vpc_id
 }

@@ -35,6 +35,16 @@ resource "aws_iam_policy" "ecs_task_secrets_policy" {
           "logs:PutLogEvents"
         ],
         Resource = "*"
+      },
+      {
+        Effect = "Allow",
+        Action = [
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage"
+        ],
+        Resource = "*"
       }
     ]
   })
