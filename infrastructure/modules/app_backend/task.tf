@@ -20,8 +20,12 @@ resource "aws_ecs_task_definition" "this" {
       ]
       secrets = [
         {
-            name      = "CHOREGARDEN_SECRETS"
-            valueFrom = var.secret_arn
+          name      = "CHOREGARDEN_SECRETS"
+          valueFrom = var.secret_arns[0]
+        },
+        {
+          name      = "CHOREGARDEN_DB_SECRETS"
+          valueFrom = var.secret_arns[1]
         }
       ]
       logConfiguration = {

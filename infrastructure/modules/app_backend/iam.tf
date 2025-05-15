@@ -26,7 +26,7 @@ resource "aws_iam_policy" "ecs_task_secrets_policy" {
         Action = [
           "secretsmanager:GetSecretValue"
         ],
-        Resource = var.secret_arn
+        Resource = var.secret_arns
       },
       {
         Effect = "Allow",

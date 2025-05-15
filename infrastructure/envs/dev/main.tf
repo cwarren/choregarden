@@ -56,8 +56,15 @@ module "app_backend" {
   source       = "../../modules/app_backend"
   name         = "choregarden-backend-dev"
   aws_region   = var.aws_region
-  secret_arn   = module.backend_secret.arn
+  secret_arns   = [module.backend_secret.arn, module.db_secret.arn]
   image_uri    = "966559697526.dkr.ecr.us-east-1.amazonaws.com/choregarden-backend:latest"
   public_subnets = module.vpc.public_subnets
   vpc_id         = module.vpc.vpc_id
+}
+
+module "db_secret" {
+  source      = "../../modules/secrets"
+  name        = "choregarden-db-dev"
+  description = "Stores credentials and connection info for the Chore Garden dev database"
+  environment = "dev"
 }

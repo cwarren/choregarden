@@ -3,9 +3,9 @@ variable "name" {
   type        = string
 }
 
-variable "secret_arn" {
-  description = "ARN of the secret to inject"
-  type        = string
+variable "secret_arns" {
+  description = "List of ARNs for secrets to be accessible by ECS task"
+  type        = list(string)
 }
 
 variable "aws_region" {
