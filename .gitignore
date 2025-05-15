@@ -7,8 +7,13 @@ logs/
 
 # Ignore .env files
 .env
+.env.json
+.env.local
+aside.env
 backend/.env
+backend/.env.json
 frontend/.env
+frontend/.env.json
 
 # Build outputs
 dist/

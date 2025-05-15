@@ -19,8 +19,16 @@ COPY . .
 # Compile TypeScript to JavaScript
 RUN tsc
 
+# Copy .env.json and set CHOREGARDEN_SECRETS env variable
+COPY .env.json /app/.env.json
+
+# Add entrypoint script
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 # Set the port for the backend server
 EXPOSE 5000
 
 # Start the backend server using the compiled JavaScript
-CMD ["node", "dist/index.js"]
+# CMD ["node", "dist/index.js"]
+ENTRYPOINT ["/app/entrypoint.sh"]
