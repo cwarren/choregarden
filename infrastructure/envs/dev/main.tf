@@ -80,5 +80,21 @@ module "db" {
   vpc_id                = module.vpc.vpc_id
   private_subnet_ids    = module.vpc.private_subnets
   ecs_security_group_id = module.app_backend.security_group_id
+  bastion_security_group_id = module.bastion.security_group_id
   environment           = "dev"
+}
+
+module "bastion" {
+  source            = "../../modules/bastion"
+  vpc_id            = module.vpc.vpc_id
+  public_subnet_id  = module.vpc.public_subnets[0]
+  ami_id            = var.bastion_ami_id
+  instance_type     = var.bastion_instance_type
+  key_name          = var.bastion_key_name
+  allowed_ssh_cidr  = var.bastion_allowed_ssh_cidr
+}
+
+output "bastion_public_ip" {
+  description = "Public IP of the Bastion host for SSH access"
+  value       = module.bastion.public_ip
 }

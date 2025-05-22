@@ -22,11 +22,27 @@ resource "aws_security_group" "this" {
     security_groups = [var.ecs_security_group_id]
   }
 
+  # Allow Bastion host to connect if bastion_security_group_id is set
+  dynamic "ingress" {
+    for_each = var.bastion_security_group_id != null ? [var.bastion_security_group_id] : []
+    content {
+      from_port       = 5432
+      to_port         = 5432
+      protocol        = "tcp"
+      description     = "Allow Bastion host to connect"
+      security_groups = [ingress.value]
+    }
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  lifecycle {
+    prevent_destroy = true
   }
 
   tags = {
@@ -44,7 +60,7 @@ resource "aws_db_instance" "this" {
   db_name                 = var.db_name
 
   # Credentials intentionally omitted (you'll set via Console or secret)
-  username                = "tempuser"
+  username                = "pgadmin"
   password                = "temppassword123"  # This will be immediately replaced manually
   skip_final_snapshot     = true
   publicly_accessible     = false

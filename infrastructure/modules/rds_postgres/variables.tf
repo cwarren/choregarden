@@ -34,3 +34,9 @@ variable "environment" {
   type    = string
   default = "dev"
 }
+
+variable "bastion_security_group_id" {
+  description = "Security group ID of the Bastion host allowed to connect to RDS"
+  type        = string
+  default     = null
+}

@@ -1,7 +1,7 @@
 # Backend Dockerfile
 FROM node:20
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
 # Set NODE_ENV to production by default
 ENV NODE_ENV=production
@@ -18,9 +18,6 @@ COPY . .
 
 # Compile TypeScript to JavaScript
 RUN tsc
-
-# Copy .env.json and set CHOREGARDEN_SECRETS env variable
-COPY .env.json /app/.env.json
 
 # Add entrypoint script
 COPY entrypoint.sh /app/entrypoint.sh

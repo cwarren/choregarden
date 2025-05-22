@@ -2,58 +2,72 @@ import express from 'express';
 import { Pool } from 'pg';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import fs from 'fs';
 
 dotenv.config();
 
-// Debug: Output the raw CHOREGARDEN_SECRETS env variable
-// console.log('DEBUG: process.env.CHOREGARDEN_SECRETS:', process.env.CHOREGARDEN_SECRETS ? '[secrets set]' : '[secrets not set]');
-// if (process.env.CHOREGARDEN_SECRETS) {
-//   try {
-//     JSON.parse(process.env.CHOREGARDEN_SECRETS);
-//     console.log('DEBUG: CHOREGARDEN_SECRETS is valid JSON');
-//   } catch (e) {
-//     console.error('DEBUG: CHOREGARDEN_SECRETS is not valid JSON:', e);
-//   }
-// }
+// Utility to load secrets from env or fallback to .env.json
+function loadJsonEnv(varName: string): any {
+  try {
+    if (process.env[varName]) {
+      console.log(`DEBUG: ${varName} loaded from environment`);
+      return JSON.parse(process.env[varName]!);
+    }
+    // Fallback: try loading from .env.json for local development
+    const raw = fs.readFileSync('./.env.json', 'utf-8');
+    const parsed = JSON.parse(raw);
+    console.log(`DEBUG: ${varName} loaded from .env.json`);
+    return parsed;
+  } catch (err) {
+    console.error(`ERROR: Failed to load ${varName}`, err);
+    return {};
+  }
+}
 
-// Parse secrets from CHOREGARDEN_SECRETS env variable
-const secrets = process.env.CHOREGARDEN_SECRETS ? JSON.parse(process.env.CHOREGARDEN_SECRETS) : {};
-if (secrets.NODE_ENV === 'development') {
+const secrets = loadJsonEnv('CHOREGARDEN_SECRETS');
+const dbSecrets = loadJsonEnv('CHOREGARDEN_DB_SECRETS');
+
+if (secrets.NODE_ENV === 'development' || true) {
   console.log('DEBUG: Parsed secrets:', secrets);
+  console.log('DEBUG: Parsed dbSecrets:', dbSecrets);
 }
 
 const app = express();
 const port = Number(secrets.BACKEND_PORT) || 5000;
 const host = '0.0.0.0'; // <-- Bind to all interfaces
 
-// Enable CORS
 app.use(cors());
 
-// PostgreSQL connection setup using secrets from CHOREGARDEN_SECRETS
-
-// Wrap sensitive console.log statements in a condition to check for development environment
 if (secrets.NODE_ENV === 'development') {
-  console.log('Resolved database host:', secrets.POSTGRES_HOST || 'database');
-  console.log('DB connection config:', secrets.DATABASE_URL ? { connectionString: secrets.DATABASE_URL } : {
-    user: secrets.APP_DB_USER,
-    host: secrets.POSTGRES_HOST,
-    database: secrets.POSTGRES_DB,
-    password: secrets.APP_DB_PASSWORD,
-    port: Number(secrets.POSTGRES_PORT)
+  console.log('Resolved database host:', dbSecrets.POSTGRES_HOST);
+  console.log('DB connection config:', dbSecrets.DATABASE_URL ? { connectionString: dbSecrets.DATABASE_URL } : {
+    user: dbSecrets.APP_DB_USER,
+    host: dbSecrets.POSTGRES_HOST,
+    database: dbSecrets.POSTGRES_DB,
+    password: dbSecrets.APP_DB_PASSWORD,
+    port: Number(dbSecrets.POSTGRES_PORT)
   });
 }
-const pool = secrets.DATABASE_URL
-  ? new Pool({ connectionString: secrets.DATABASE_URL })
+
+const commonConfig = {
+  ssl: { rejectUnauthorized: false }
+};
+
+const pool = dbSecrets.DATABASE_URL
+  ? new Pool({
+      connectionString: dbSecrets.DATABASE_URL,
+      ...commonConfig
+    })
   : new Pool({
-    user: secrets.APP_DB_USER || 'unknown1',
-    host: secrets.POSTGRES_HOST || 'unknown2',
-    database: secrets.POSTGRES_DB || 'unknown3',
-    password: secrets.APP_DB_PASSWORD || 'unknown4',
-    port: Number(secrets.POSTGRES_PORT) || 5432,
-  });
+      user: dbSecrets.APP_DB_USER || 'unknown1',
+      host: dbSecrets.POSTGRES_HOST || 'unknown2',
+      database: dbSecrets.POSTGRES_DB || 'unknown3',
+      password: dbSecrets.APP_DB_PASSWORD || 'unknown4',
+      port: Number(dbSecrets.POSTGRES_PORT) || 5432,
+      ...commonConfig
+    });
 
 
-// Retry logic for database connection
 const connectWithRetry = (retries = 5, delay = 2000): void => {
   if (retries === 0) {
     console.error('Failed to connect to the database after multiple attempts.');
@@ -70,17 +84,16 @@ const connectWithRetry = (retries = 5, delay = 2000): void => {
   });
 };
 
-// Call the retry logic only in non-test environments
 if (secrets.NODE_ENV !== 'test') {
   connectWithRetry();
 }
 
-// Basic API endpoints
 app.get('/api/ping', (req: express.Request, res: express.Response) => {
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
   console.log(`Received /api/ping request from ${ip}`);
   res.json({ message: 'pong' });
 });
+
 app.get('/api/pingdeep', (req: express.Request, res: express.Response) => {
   pool.query('SELECT NOW()', (err: Error | null, result: { rows: { [key: string]: any }[] } | undefined) => {
     if (err) {
@@ -97,4 +110,3 @@ const server = app.listen(port, host, () => {
 });
 
 export { app, pool, server };
-// export { app, server };
