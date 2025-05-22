@@ -27,10 +27,10 @@ function loadJsonEnv(varName: string): any {
 const secrets = loadJsonEnv('CHOREGARDEN_SECRETS');
 const dbSecrets = loadJsonEnv('CHOREGARDEN_DB_SECRETS');
 
-if (secrets.NODE_ENV === 'development' || true) {
-  console.log('DEBUG: Parsed secrets:', secrets);
-  console.log('DEBUG: Parsed dbSecrets:', dbSecrets);
-}
+// if (secrets.NODE_ENV === 'development' || true) {
+//   console.log('DEBUG: Parsed secrets:', secrets);
+//   console.log('DEBUG: Parsed dbSecrets:', dbSecrets);
+// }
 
 const app = express();
 const port = Number(secrets.BACKEND_PORT) || 5000;
@@ -38,16 +38,16 @@ const host = '0.0.0.0'; // <-- Bind to all interfaces
 
 app.use(cors());
 
-if (secrets.NODE_ENV === 'development') {
-  console.log('Resolved database host:', dbSecrets.POSTGRES_HOST);
-  console.log('DB connection config:', dbSecrets.DATABASE_URL ? { connectionString: dbSecrets.DATABASE_URL } : {
-    user: dbSecrets.APP_DB_USER,
-    host: dbSecrets.POSTGRES_HOST,
-    database: dbSecrets.POSTGRES_DB,
-    password: dbSecrets.APP_DB_PASSWORD,
-    port: Number(dbSecrets.POSTGRES_PORT)
-  });
-}
+// if (secrets.NODE_ENV === 'development') {
+//   console.log('Resolved database host:', dbSecrets.POSTGRES_HOST);
+//   console.log('DB connection config:', dbSecrets.DATABASE_URL ? { connectionString: dbSecrets.DATABASE_URL } : {
+//     user: dbSecrets.APP_DB_USER,
+//     host: dbSecrets.POSTGRES_HOST,
+//     database: dbSecrets.POSTGRES_DB,
+//     password: dbSecrets.APP_DB_PASSWORD,
+//     port: Number(dbSecrets.POSTGRES_PORT)
+//   });
+// }
 
 const commonConfig = {
   ssl: { rejectUnauthorized: false }
