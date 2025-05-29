@@ -1,14 +1,19 @@
 latest done:
-* validate tf networking by creating a temp ec2 instance that I can hit
-* first manual deploy of be
+* update BE to use new structure for secrets / envi vars
+* use of terraform to create cg infrastructure for BE and DB
 
 next steps:
-* update BE to use new structure for secrets / envi vars
-* first manual deploy of FE
-* first manual deploy of DB
+* set up API Gateway for access to API
+* move backend into private subnet
 
 
 longer term:
-* use of terraform to create cg infrastructure
+* use of terraform to create cg infrastructure for FE
+* first manual deploy of FE
 * deploy via ci-cd (to dev environment)
 * add simple-but-not-trivial FE tests
+* set up db migration tool (flyway, probably)
+* simple schema change via flyway (test/validation table and data)
+* first manual deploy of DB
+* implement schema update using flyway - manual
+* deployment and migration via CI-CD

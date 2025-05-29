@@ -3,11 +3,12 @@ resource "aws_security_group" "backend_sg" {
   description = "Allow inbound HTTP for backend"
   vpc_id      = var.vpc_id
 
+  # Only allow traffic from within the VPC (e.g., API Gateway, NLB, or Bastion for testing)
   ingress {
     from_port   = 5000
     to_port     = 5000
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # For dev only
+    cidr_blocks = ["10.0.0.0/16"]
   }
 
   egress {
@@ -26,9 +27,9 @@ resource "aws_ecs_service" "this" {
   desired_count   = 1
 
   network_configuration {
-    subnets         = var.public_subnets
+    subnets         = var.private_subnets
     security_groups = [aws_security_group.backend_sg.id]
-    assign_public_ip = true
+    # assign_public_ip is omitted for private subnet
   }
 
   depends_on = [aws_iam_role_policy_attachment.attach_policy]

@@ -59,7 +59,7 @@ module "app_backend" {
   aws_region   = var.aws_region
   secret_arns   = [module.backend_secret.arn, module.db_secret.arn]
   image_uri    = "966559697526.dkr.ecr.us-east-1.amazonaws.com/choregarden-backend:latest"
-  public_subnets = module.vpc.public_subnets
+  private_subnets = module.vpc.private_subnets
   vpc_id         = module.vpc.vpc_id
 }
 

@@ -21,6 +21,13 @@ variable "image_uri" {
 variable "public_subnets" {
   type        = list(string)
   description = "List of public subnet IDs for ECS networking"
+  default     = []
+}
+
+variable "private_subnets" {
+  type        = list(string)
+  description = "List of private subnet IDs for ECS networking"
+  default     = []
 }
 
 variable "vpc_id" {
