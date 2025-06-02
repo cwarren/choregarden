@@ -61,6 +61,9 @@ module "app_backend" {
   image_uri    = "966559697526.dkr.ecr.us-east-1.amazonaws.com/choregarden-backend:latest"
   private_subnets = module.vpc.private_subnets
   vpc_id         = module.vpc.vpc_id
+  cloudmap_namespace_id = aws_service_discovery_private_dns_namespace.backend.id
+  enable_service_discovery = true
+  bastion_security_group_id = module.bastion.security_group_id
 }
 
 module "db_secret" {
@@ -92,6 +95,77 @@ module "bastion" {
   instance_type     = var.bastion_instance_type
   key_name          = var.bastion_key_name
   allowed_ssh_cidr  = var.bastion_allowed_ssh_cidr
+}
+
+resource "aws_service_discovery_private_dns_namespace" "backend" {
+  name        = "choregarden"
+  description = "Service discovery for ChoreGarden backend"
+  vpc         = module.vpc.vpc_id
+}
+
+resource "aws_vpc_endpoint" "secretsmanager" {
+  vpc_id            = module.vpc.vpc_id
+  service_name      = "com.amazonaws.${var.aws_region}.secretsmanager"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = module.vpc.private_subnets
+  security_group_ids = [module.app_backend.security_group_id]
+
+  private_dns_enabled = true
+
+  tags = {
+    Name = "choregarden-secretsmanager-endpoint"
+    env  = "dev"
+  }
+}
+
+resource "aws_vpc_endpoint" "ecr_api" {
+  vpc_id            = module.vpc.vpc_id
+  service_name      = "com.amazonaws.${var.aws_region}.ecr.api"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = module.vpc.private_subnets
+  security_group_ids = [module.app_backend.security_group_id]
+  private_dns_enabled = true
+  tags = {
+    Name = "choregarden-ecr-api-endpoint"
+    env  = "dev"
+  }
+}
+
+resource "aws_vpc_endpoint" "ecr_dkr" {
+  vpc_id            = module.vpc.vpc_id
+  service_name      = "com.amazonaws.${var.aws_region}.ecr.dkr"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = module.vpc.private_subnets
+  security_group_ids = [module.app_backend.security_group_id]
+  private_dns_enabled = true
+  tags = {
+    Name = "choregarden-ecr-dkr-endpoint"
+    env  = "dev"
+  }
+}
+
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id            = module.vpc.vpc_id
+  service_name      = "com.amazonaws.${var.aws_region}.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = module.vpc.private_route_table_ids
+  tags = {
+    Name = "choregarden-s3-endpoint"
+    env  = "dev"
+  }
+}
+
+resource "aws_vpc_endpoint" "logs" {
+  vpc_id             = module.vpc.vpc_id
+  service_name       = "com.amazonaws.${var.aws_region}.logs"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = module.vpc.private_subnets
+  security_group_ids = [module.app_backend.security_group_id]
+  private_dns_enabled = true
+  tags = {
+    Name = "choregarden-logs-endpoint"
+    env  = "dev"
+  }
 }
 
 output "bastion_public_ip" {

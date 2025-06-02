@@ -4,7 +4,11 @@ latest done:
 
 next steps:
 * set up API Gateway for access to API
-* move backend into private subnet
+* * DONE move backend to private subnet
+* * DONE set up cloud map for backend
+* * DONE create VPC link
+* * set up API gateway with mocked ping endpoint
+* * update API gateway to use VPC link
 
 
 longer term:
