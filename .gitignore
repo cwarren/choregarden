@@ -45,3 +45,6 @@ terraform.tfplan
 .DS_Store
 .idea/
 .vscode/
+
+# Ignore local dev resource config
+scripts/dev-resource-ids.ps1
