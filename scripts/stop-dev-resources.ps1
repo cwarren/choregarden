@@ -2,6 +2,10 @@
 # This script stops all billable dev resources: VPC interface endpoints, RDS, ECS backend, and Bastion EC2 instance.
 # Resource config is loaded from dev-resource-ids.ps1 (which should be in .gitignore)
 
+# TO RUN:
+# 1. navigate to the scripts directory
+# 2. run: .\stop-dev-resources.ps1
+
 $idsPath = Join-Path $PSScriptRoot 'dev-resource-ids.ps1'
 if (Test-Path $idsPath) {
     $config = Get-Content $idsPath | Out-String | Invoke-Expression
@@ -42,18 +46,18 @@ Write-Host "Resolved VPC Endpoint IDs: $($vpcEndpointIds -join ', ')"
 
 # 1. Delete interface VPC endpoints
 foreach ($id in $vpcEndpointIds) {
-    aws ec2 delete-vpc-endpoints --vpc-endpoint-ids $id --region $region --profile $profile
+    aws ec2 delete-vpc-endpoints --vpc-endpoint-ids $id --region $region --profile $profile | Out-Host
 }
 
 # 2. Stop RDS instance
-aws rds stop-db-instance --db-instance-identifier $rdsInstanceId --region $region --profile $profile
+aws rds stop-db-instance --db-instance-identifier $rdsInstanceId --region $region --profile $profile | Out-Host
 
 # 3. Scale down ECS service
-aws ecs update-service --cluster $ecsCluster --service $ecsService --desired-count 0 --region $region --profile $profile
+aws ecs update-service --cluster $ecsCluster --service $ecsService --desired-count 0 --region $region --profile $profile | Out-Host
 
 # 4. Stop Bastion EC2 instance
 if ($bastionInstanceId) {
-    aws ec2 stop-instances --instance-ids $bastionInstanceId --region $region --profile $profile
+    aws ec2 stop-instances --instance-ids $bastionInstanceId --region $region --profile $profile | Out-Host
 } else {
     Write-Warning "No Bastion instance found with Name tag '$bastionNameTag'"
 }

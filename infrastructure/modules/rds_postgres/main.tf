@@ -66,6 +66,7 @@ resource "aws_db_instance" "this" {
   publicly_accessible     = false
   vpc_security_group_ids  = [aws_security_group.this.id]
   db_subnet_group_name    = aws_db_subnet_group.this.name
+  storage_encrypted        = true
 
   backup_retention_period = 1
 
