@@ -61,8 +61,6 @@ module "app_backend" {
   image_uri    = "966559697526.dkr.ecr.us-east-1.amazonaws.com/choregarden-backend:latest"
   private_subnets = module.vpc.private_subnets
   vpc_id         = module.vpc.vpc_id
-  cloudmap_namespace_id = aws_service_discovery_private_dns_namespace.backend.id
-  enable_service_discovery = true
   bastion_security_group_id = module.bastion.security_group_id
 }
 
@@ -97,10 +95,11 @@ module "bastion" {
   allowed_ssh_cidr  = var.bastion_allowed_ssh_cidr
 }
 
-resource "aws_service_discovery_private_dns_namespace" "backend" {
-  name        = "choregarden"
-  description = "Service discovery for ChoreGarden backend"
-  vpc         = module.vpc.vpc_id
+module "api_gateway" {
+  source                = "../../modules/api_gateway"
+  vpc_link_id           = aws_apigatewayv2_vpc_link.backend.id
+  nlb_arn               = module.app_backend.nlb_arn # Still pass for reference if needed
+  nlb_listener_arn      = module.app_backend.nlb_listener_arn # Pass the listener ARN for integration
 }
 
 resource "aws_vpc_endpoint" "secretsmanager" {
@@ -168,7 +167,22 @@ resource "aws_vpc_endpoint" "logs" {
   }
 }
 
+resource "aws_apigatewayv2_vpc_link" "backend" {
+  name               = "choregarden-backend-vpc-link"
+  subnet_ids         = module.vpc.private_subnets
+  security_group_ids = [module.app_backend.security_group_id]
+  tags = {
+    env = "dev"
+    project = "choregarden"
+  }
+}
+
 output "bastion_public_ip" {
   description = "Public IP of the Bastion host for SSH access"
   value       = module.bastion.public_ip
+}
+
+output "http_api_url" {
+  description = "Invoke URL for the HTTP API"
+  value       = module.api_gateway.http_api_url
 }

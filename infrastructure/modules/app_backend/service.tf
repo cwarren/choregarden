@@ -43,19 +43,57 @@ resource "aws_security_group_rule" "allow_https_from_backend" {
   description              = "Allow ECS tasks to access VPC endpoint for Secrets Manager"
 }
 
-resource "aws_service_discovery_service" "backend" {
-  count = var.enable_service_discovery ? 1 : 0
-  name = "${var.name}"
-  dns_config {
-    namespace_id = var.cloudmap_namespace_id
-    dns_records {
-      type = "A"
-      ttl  = 10
-    }
-    routing_policy = "MULTIVALUE"
+resource "aws_security_group_rule" "allow_vpclink_backend" {
+  type                     = "ingress"
+  from_port                = 5000
+  to_port                  = 5000
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.backend_sg.id
+  source_security_group_id = aws_security_group.backend_sg.id
+  description              = "Allow VPC Link to backend on 5000"
+}
+
+resource "aws_lb" "backend_nlb" {
+  name               = "${var.name}-nlb"
+  internal           = true
+  load_balancer_type = "network"
+  subnets            = var.private_subnets
+  enable_deletion_protection = false
+
+  tags = {
+    Name = "${var.name}-nlb"
+    env  = "dev"
   }
-  health_check_custom_config {
-    failure_threshold = 1
+}
+
+resource "aws_lb_target_group" "backend" {
+  name        = "${var.name}-tg"
+  port        = 5000
+  protocol    = "TCP"
+  vpc_id      = var.vpc_id
+  target_type = "ip"
+
+  health_check {
+    protocol            = "TCP"
+    port                = "5000"
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    interval            = 10
+  }
+
+  tags = {
+    Name = "${var.name}-tg"
+    env  = "dev"
+  }
+}
+
+resource "aws_lb_listener" "backend" {
+  load_balancer_arn = aws_lb.backend_nlb.arn
+  port              = 5000
+  protocol          = "TCP"
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.backend.arn
   }
 }
 
@@ -70,11 +108,10 @@ resource "aws_ecs_service" "this" {
     subnets         = var.private_subnets
     security_groups = [aws_security_group.backend_sg.id]
   }
-  dynamic "service_registries" {
-    for_each = var.enable_service_discovery ? [1] : []
-    content {
-      registry_arn = aws_service_discovery_service.backend[0].arn
-    }
+  load_balancer {
+    target_group_arn = aws_lb_target_group.backend.arn
+    container_name   = "backend"
+    container_port   = 5000
   }
 
   depends_on = [aws_iam_role_policy_attachment.attach_policy]

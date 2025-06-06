@@ -35,12 +35,6 @@ variable "vpc_id" {
   description = "VPC ID to attach security groups"
 }
 
-variable "cloudmap_namespace_id" {
-  description = "ID of the CloudMap namespace for service discovery"
-  type        = string
-  default     = null
-}
-
 variable "enable_service_discovery" {
   description = "Whether to enable ECS service discovery (CloudMap)"
   type        = bool

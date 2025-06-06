@@ -42,14 +42,18 @@ Write-Host "ECS Service: $ecsService"
 Write-Host "Bastion Name Tag: $bastionNameTag"
 Write-Host "Bastion Instance ID: $bastionInstanceId"
 
-# 1. Re-create VPC endpoints with Terraform (only VPC endpoints, not Bastion or ECS)
+# 1. Re-create VPC endpoints, VPC Link, and NLB with Terraform (all infra except Bastion, ECS, RDS)
 $env:AWS_PROFILE = $profile
 cd $PSScriptRoot/../infrastructure/envs/dev
 terraform apply -auto-approve `
   "-target=aws_vpc_endpoint.secretsmanager" `
   "-target=aws_vpc_endpoint.ecr_api" `
   "-target=aws_vpc_endpoint.ecr_dkr" `
-  "-target=aws_vpc_endpoint.logs"
+  "-target=aws_vpc_endpoint.logs" `
+  "-target=aws_apigatewayv2_vpc_link.backend" `
+  "-target=module.app_backend.aws_lb.backend_nlb" `
+  "-target=module.app_backend.aws_lb_target_group.backend" `
+  "-target=module.app_backend.aws_lb_listener.backend"
 cd $PSScriptRoot
 
 # 2. Start RDS instance

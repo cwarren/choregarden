@@ -61,3 +61,23 @@ if ($bastionInstanceId) {
 } else {
     Write-Warning "No Bastion instance found with Name tag '$bastionNameTag'"
 }
+
+# 5. Delete API Gateway VPC Link (to stop billing)
+$vpcLinkId = aws apigatewayv2 get-vpc-links --region $region --profile $profile | ConvertFrom-Json | Select-Object -ExpandProperty Items | Where-Object { $_.Name -eq "choregarden-backend-vpc-link" } | Select-Object -ExpandProperty VpcLinkId
+if ($vpcLinkId) {
+    aws apigatewayv2 delete-vpc-link --vpc-link-id $vpcLinkId --region $region --profile $profile | Out-Host
+    Write-Host "Deleted API Gateway VPC Link: $vpcLinkId"
+} else {
+    Write-Warning "No API Gateway VPC Link found with name 'choregarden-backend-vpc-link'"
+}
+
+# 6. NLB management
+# Find NLB ARN by name
+$nlbName = "choregarden-backend-dev-nlb"
+$nlb = aws elbv2 describe-load-balancers --region $region --profile $profile | ConvertFrom-Json | Select-Object -ExpandProperty LoadBalancers | Where-Object { $_.LoadBalancerName -eq $nlbName }
+if ($nlb) {
+    aws elbv2 delete-load-balancer --load-balancer-arn $nlb.LoadBalancerArn --region $region --profile $profile | Out-Host
+    Write-Host "Deleted NLB: $nlbName ($($nlb.LoadBalancerArn))"
+} else {
+    Write-Host "No NLB found with name $nlbName"
+}
