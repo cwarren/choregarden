@@ -62,7 +62,20 @@ if ($bastionInstanceId) {
     Write-Warning "No Bastion instance found with Name tag '$bastionNameTag'"
 }
 
-# 5. Delete API Gateway VPC Link (to stop billing)
+# 5. Remove API Gateway integrations and routes before deleting VPC Link
+# Destroy API Gateway integrations and routes using Terraform (if available)
+$tfDir = Join-Path $PSScriptRoot '../infrastructure/envs/dev'
+if (Test-Path $tfDir) {
+    Write-Host "Destroying API Gateway integrations and routes to free VPC Link..."
+    Push-Location $tfDir
+    terraform destroy -auto-approve `
+      "-target=module.api_gateway.aws_apigatewayv2_integration.backend_vpc" `
+      "-target=module.api_gateway.aws_apigatewayv2_route.ping" `
+      "-target=module.api_gateway.aws_apigatewayv2_route.pingdeep"
+    Pop-Location
+}
+
+# 5b. Delete API Gateway VPC Link (to stop billing)
 $vpcLinkId = aws apigatewayv2 get-vpc-links --region $region --profile $profile | ConvertFrom-Json | Select-Object -ExpandProperty Items | Where-Object { $_.Name -eq "choregarden-backend-vpc-link" } | Select-Object -ExpandProperty VpcLinkId
 if ($vpcLinkId) {
     aws apigatewayv2 delete-vpc-link --vpc-link-id $vpcLinkId --region $region --profile $profile | Out-Host
