@@ -1,20 +1,12 @@
 latest done:
-* update BE to use new structure for secrets / envi vars
-* use of terraform to create cg infrastructure for BE and DB
+API gateway up and running with ping and pingdeep working
 
 next steps:
-* set up API Gateway for access to API
-* * DONE move backend to private subnet
-* * DONE set up cloud map for backend
-* * DONE create VPC link
-* * set up API gateway with mocked ping endpoint
-* * update API gateway to use VPC link
-
-
-longer term:
 * use of terraform to create cg infrastructure for FE
 * first manual deploy of FE
-* deploy via ci-cd (to dev environment)
+
+longer term:
+* deploy FE via ci-cd (to dev environment)
 * add simple-but-not-trivial FE tests
 * set up db migration tool (flyway, probably)
 * simple schema change via flyway (test/validation table and data)

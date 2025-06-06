@@ -102,6 +102,12 @@ module "api_gateway" {
   nlb_listener_arn      = module.app_backend.nlb_listener_arn # Pass the listener ARN for integration
 }
 
+module "frontend_static_site" {
+  source      = "../../modules/frontend_static_site"
+  bucket_name = "choregarden-frontend-dev"
+  environment = "dev"
+}
+
 resource "aws_vpc_endpoint" "secretsmanager" {
   vpc_id            = module.vpc.vpc_id
   service_name      = "com.amazonaws.${var.aws_region}.secretsmanager"
@@ -185,4 +191,14 @@ output "bastion_public_ip" {
 output "http_api_url" {
   description = "Invoke URL for the HTTP API"
   value       = module.api_gateway.http_api_url
+}
+
+output "frontend_s3_bucket_name" {
+  description = "S3 bucket name for the frontend static site"
+  value       = module.frontend_static_site.s3_bucket_name
+}
+
+output "frontend_cloudfront_url" {
+  description = "CloudFront distribution domain for the frontend"
+  value       = module.frontend_static_site.cloudfront_url
 }
