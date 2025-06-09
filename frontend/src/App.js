@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 
 function App() {
   const [apiResponse, setApiResponse] = useState('');
+  const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/ping')
+    fetch(`${apiBaseUrl}/api/ping`)
       .then((response) => response.json())
       .then((data) => setApiResponse(data.message))
       .catch((error) => console.error('Error fetching API:', error));

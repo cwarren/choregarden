@@ -1,12 +1,13 @@
 # Chore Garden MVP
 
-Chore Garden MVP is a cross-device task and chore management system tailored for households and small co-living groups. It focuses on frictionless household setup, easy and intuitive task tracking, and flexible work lists while showcasing Chore Garden's unique priority-based and schedule-driven hybrid model.
+Chore Garden task and chore management system tailored for households and small co-living groups. It focuses on frictionless household setup, easy and intuitive task tracking, and flexible work lists using a priority-based and schedule-driven hybrid model.
+
+Also, Chore Garden is an exercise in creating a table-stakes application - with infrastructure and core functionality that's robust enough for a commercial product. This can be used as a template to get a new application up and running very quickly.
 
 ## Features
 - Dynamic chore flows
 - Basic reward feedback
 - Robust defaults
-- Responsive, installable PWA
 
 ## Exclusions
 - Advanced gamification
@@ -24,9 +25,34 @@ Chore Garden MVP is a cross-device task and chore management system tailored for
 ## Repository Structure
 This monorepo will include the following:
 - `backend/`: Backend services (API, job scheduler, etc.)
+- `database/`: Database scripts, certs, migrations, etc.
 - `frontend/`: Frontend application
 - `infrastructure/`: Terraform scripts for infrastructure as code
 - `shared/`: Shared utilities and types
 
-## Getting Started
-Instructions for setting up the development environment will be added soon.
+## Core Functionality & Characteristics
+- infrastructure fully spec-ed in terraform
+- secure secrets handling
+- CI/CD
+- highly cost-aware
+- protected & public API endpoints
+- protected & public sections of the web site
+- user account creation and management
+- integration with a payment system
+- basic RBAC
+- basic subscription system
+- robust system documentation
+
+# Development Dependencies
+
+These are the tools / services that I used for local development.
+
+* nvm - for managing node installations
+* node - for running tools and code
+* npm - for testing, builds, etc.
+* docker - for running everything locally
+* aws cli - for debugging/inspection, dev session scripts, and manual deployments and similar
+* terraform - to manage the infrastructure
+* openssl - to create the local cert for the DB
+
+This was developed on a Windows machine, user Powershell as my commandline tool and VSCode as my editor.

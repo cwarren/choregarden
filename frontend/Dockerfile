@@ -13,7 +13,10 @@ RUN npm install
 # Copy the rest of the application code to the working directory
 COPY . .
 
-# Build the React app
+# Copy environment files (for build-time API URL)
+COPY .env* ./
+
+# Build the React app with environment variables
 RUN npm run build
 
 # Use a lightweight web server to serve the React app

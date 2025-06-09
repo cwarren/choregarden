@@ -9,6 +9,9 @@ logs/
 .env
 .env.json
 .env.local
+.env.dev
+.env.prod
+.env.test
 aside.env
 backend/.env
 backend/.env.json
@@ -48,3 +51,7 @@ terraform.tfplan
 
 # Ignore local dev resource config
 scripts/dev-resource-ids.ps1
+
+# Database SSL certs (do not commit private keys or certs)
+database/certs/server.key
+database/certs/server.crt
