@@ -1,14 +1,15 @@
 latest done:
 * validate the start-dev and stop-dev scripts (make sure they handle the API gateway and VPC link correctly)
+* get the FE talking to the API
 
 next steps:
-* get the FE talking to the API
+* add a pingdeep validation to the FE
+* create a /status section of the site which has all the ping stuff
 
 longer term:
 * deploy FE via ci-cd (to dev environment)
-* add simple-but-not-trivial FE tests
+* deploy BE via ci-cd (to dev environment)
 * set up db migration tool (flyway, probably)
 * simple schema change via flyway (test/validation table and data)
-* first manual deploy of DB
 * implement schema update using flyway - manual
 * deployment and migration via CI-CD
