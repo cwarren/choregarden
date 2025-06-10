@@ -1,11 +1,7 @@
 latest done:
-* API gateway up and running with ping and pingdeep working
-* use of terraform to create cg infrastructure for FE
-* first manual deploy of FE
-* re-validate (& fix as needed) the local docker set up
+* validate the start-dev and stop-dev scripts (make sure they handle the API gateway and VPC link correctly)
 
 next steps:
-* validate the start-dev and stop-dev scripts (make sure they handle the API gateway and VPC link correctly)
 * get the FE talking to the API
 
 longer term:

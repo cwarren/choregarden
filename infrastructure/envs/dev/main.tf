@@ -4,7 +4,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = ">= 5.44.0"
     }
   }
 }
@@ -106,6 +106,7 @@ module "frontend_static_site" {
   source      = "../../modules/frontend_static_site"
   bucket_name = "choregarden-frontend-dev"
   environment = "dev"
+  api_base_url = module.api_gateway.http_api_url
 }
 
 resource "aws_vpc_endpoint" "secretsmanager" {
@@ -181,6 +182,11 @@ resource "aws_apigatewayv2_vpc_link" "backend" {
     env = "dev"
     project = "choregarden"
   }
+}
+
+resource "aws_cloudfront_distribution_invalidation" "frontend_invalidation" {
+  distribution_id = module.frontend_static_site.cloudfront_distribution_id
+  paths           = ["/config.json", "/index.html"]
 }
 
 output "bastion_public_ip" {

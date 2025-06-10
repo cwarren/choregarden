@@ -8,3 +8,8 @@ variable "environment" {
   type        = string
   default     = "dev"
 }
+
+variable "api_base_url" {
+  description = "Base URL for the backend API, used by the frontend"
+  type        = string
+}

@@ -101,10 +101,24 @@ resource "aws_s3_bucket_policy" "frontend_oac" {
   policy = data.aws_iam_policy_document.frontend_oac.json
 }
 
+resource "aws_s3_object" "frontend_config" {
+  bucket       = aws_s3_bucket.frontend.id
+  key          = "config.json"
+  content      = jsonencode({
+    REACT_APP_API_BASE_URL = var.api_base_url
+  })
+  content_type = "application/json"
+  acl          = "private"
+}
+
 output "s3_bucket_name" {
   value = aws_s3_bucket.frontend.bucket
 }
 
 output "cloudfront_url" {
   value = aws_cloudfront_distribution.frontend.domain_name
+}
+
+output "cloudfront_distribution_id" {
+  value = aws_cloudfront_distribution.frontend.id
 }

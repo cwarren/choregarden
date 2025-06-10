@@ -10,8 +10,6 @@ services:
       - backend
     networks:
       - choregarden-network
-    env_file:
-      - ./frontend/.env.local
 
   backend:
     build:

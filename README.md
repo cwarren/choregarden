@@ -53,6 +53,7 @@ These are the tools / services that I used for local development.
 * docker - for running everything locally
 * aws cli - for debugging/inspection, dev session scripts, and manual deployments and similar
 * terraform - to manage the infrastructure
+* * requires resource that is only available in AWS provider version 5.44.0 and later.
 * openssl - to create the local cert for the DB
 
 This was developed on a Windows machine, user Powershell as my commandline tool and VSCode as my editor.
