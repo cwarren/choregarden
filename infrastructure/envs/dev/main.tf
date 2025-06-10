@@ -184,11 +184,6 @@ resource "aws_apigatewayv2_vpc_link" "backend" {
   }
 }
 
-resource "aws_cloudfront_distribution_invalidation" "frontend_invalidation" {
-  distribution_id = module.frontend_static_site.cloudfront_distribution_id
-  paths           = ["/config.json", "/index.html"]
-}
-
 output "bastion_public_ip" {
   description = "Public IP of the Bastion host for SSH access"
   value       = module.bastion.public_ip
@@ -204,7 +199,4 @@ output "frontend_s3_bucket_name" {
   value       = module.frontend_static_site.s3_bucket_name
 }
 
-output "frontend_cloudfront_url" {
-  description = "CloudFront distribution domain for the frontend"
-  value       = module.frontend_static_site.cloudfront_url
-}
+# No CloudFront invalidation outputs needed. Use external script for invalidation
