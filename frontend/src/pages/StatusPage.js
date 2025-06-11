@@ -19,17 +19,15 @@ function StatusPage({ apiBaseUrl }) {
   }, [apiBaseUrl]);
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Chore Garden Status Page</h1>
-        <ul style={{ textAlign: 'left', margin: '0 auto', maxWidth: 600 }}>
-          <li><b>Static site:</b> alive</li>
-          <li><b>API URL:</b> {apiBaseUrl}</li>
-          <li><b>API ping:</b> {apiStatus.status} {apiStatus.message && `[${apiStatus.message}]`}</li>
-          <li><b>DB ping:</b> {dbStatus.status} {dbStatus.message && `[${dbStatus.message}]`}</li>
+    <div className="App min-h-screen flex flex-col items-center">
+        <h1 className="text-3xl font-bold text-green-800 mb-6">Chore Garden Status</h1>
+        <ul className="status-list bg-white rounded p-6 mb-8 mt-4">
+            <li><b>Static site:</b> alive</li>
+            <li><b>API URL:</b> {apiBaseUrl}</li>
+            <li><b>API ping:</b> {apiStatus.status} {apiStatus.message && `[${apiStatus.message}]`}</li>
+            <li><b>DB ping:</b> {dbStatus.status} {dbStatus.message && `[${dbStatus.message}]`}</li>
         </ul>
-        <Link to="/">Back to Home</Link>
-      </header>
+        <Link to="/" className="text-link text-sm">Home</Link>
     </div>
   );
 }

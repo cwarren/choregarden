@@ -198,5 +198,3 @@ output "frontend_s3_bucket_name" {
   description = "S3 bucket name for the frontend static site"
   value       = module.frontend_static_site.s3_bucket_name
 }
-
-# No CloudFront invalidation outputs needed. Use external script for invalidation

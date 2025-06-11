@@ -16,3 +16,14 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* .text-link class for global link styling */
+.text-link {
+  color: #15803d; /* Tailwind green-700 */
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+
+.text-link:hover {
+  color: #14532d; /* Tailwind green-900 */
+}

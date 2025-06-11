@@ -1,13 +1,18 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import HeaderNavBar from '../components/HeaderNavBar';
 
 function HomePage() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Welcome to Chore Garden</h1>
-        <Link to="/status">Status Page</Link>
-      </header>
+    <div className="App min-h-screen relative">
+      <HeaderNavBar onLogin={() => { /* TODO: implement login */ }} />
+      <Link
+        to="/status"
+        className="absolute right-4 bottom-4 text-xs text-link"
+        style={{ letterSpacing: 0.5 }}
+      >
+        status
+      </Link>
     </div>
   );
 }
