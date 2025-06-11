@@ -48,18 +48,6 @@ services:
     env_file:
       - ./.env
 
-  flyway:
-    image: flyway/flyway:10
-    command: -url=jdbc:postgresql://database:5432/${POSTGRES_DB} -user=${POSTGRES_USER} -password=${POSTGRES_PASSWORD} -connectRetries=10 migrate
-    volumes:
-      - ./database/migrations:/flyway/sql
-    depends_on:
-      - database
-    networks:
-      - choregarden-network
-    env_file:
-      - ./.env
-
 volumes:
   choregarden-data:
 

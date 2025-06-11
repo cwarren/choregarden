@@ -27,7 +27,7 @@ function StatusPage({ apiBaseUrl }) {
             <li><b>API ping:</b> {apiStatus.status} {apiStatus.message && `[${apiStatus.message}]`}</li>
             <li><b>DB ping:</b> {dbStatus.status} {dbStatus.message && `[${dbStatus.message}]`}</li>
         </ul>
-        <Link to="/" className="text-link text-sm">Home</Link>
+        <Link to="/" className="text-link text-sm">home</Link>
     </div>
   );
 }
