@@ -184,6 +184,88 @@ resource "aws_apigatewayv2_vpc_link" "backend" {
   }
 }
 
+resource "aws_s3_bucket" "db_migrations" {
+  bucket = "choregarden-db-migrations"
+  force_destroy = true
+  tags = {
+    project = "choregarden"
+    purpose = "db-migrations"
+  }
+}
+
+resource "aws_ecr_repository" "migration_lambda" {
+  name = "migration-lambda"
+  image_tag_mutability = "MUTABLE"
+  force_delete = true
+}
+
+resource "aws_iam_role" "migration_lambda" {
+  name = "migration-lambda-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = { Service = "lambda.amazonaws.com" }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "migration_lambda_policy" {
+  role = aws_iam_role.migration_lambda.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = ["s3:GetObject"],
+        Resource = ["${aws_s3_bucket.db_migrations.arn}/*"]
+      },
+      {
+        Effect = "Allow"
+        Action = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
+        Resource = "arn:aws:logs:*:*:*"
+      },
+      {
+        Effect = "Allow"
+        Action = ["secretsmanager:GetSecretValue"],
+        Resource = module.db_secret.arn
+      }
+    ]
+  })
+}
+
+variable "migration_lambda_image_tag" {
+  description = "ECR image tag for the migration Lambda (should be immutable, e.g., commit SHA)"
+  type        = string
+}
+
+data "aws_ecr_image" "migration_lambda" {
+  repository_name = aws_ecr_repository.migration_lambda.name
+  image_tag       = var.migration_lambda_image_tag
+}
+
+resource "aws_lambda_function" "migration_lambda" {
+  function_name = "flyway-migration"
+  role          = aws_iam_role.migration_lambda.arn
+  package_type  = "Image"
+  image_uri     = data.aws_ecr_image.migration_lambda.image_uri
+  timeout       = 900
+  vpc_config {
+    subnet_ids         = module.vpc.private_subnets
+    security_group_ids = [module.app_backend.security_group_id]
+  }
+  environment {
+    variables = {
+      MIGRATION_S3_BUCKET = aws_s3_bucket.db_migrations.bucket
+      MIGRATION_S3_PREFIX = "migrations/"
+      RDS_ENDPOINT        = module.db.endpoint
+      DB_SECRET_ARN       = module.db_secret.arn
+    }
+  }
+  depends_on = [aws_iam_role_policy.migration_lambda_policy]
+}
+
 output "bastion_public_ip" {
   description = "Public IP of the Bastion host for SSH access"
   value       = module.bastion.public_ip

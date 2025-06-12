@@ -1,0 +1,30 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group 'com.choregarden'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.amazonaws:aws-lambda-java-core:1.2.3'
+    implementation 'com.amazonaws:aws-lambda-java-events:3.11.4'
+    implementation 'com.amazonaws:aws-java-sdk-s3:1.12.698'
+    implementation 'org.flywaydb:flyway-core:10.22.0'
+    implementation 'org.postgresql:postgresql:42.7.3'
+    implementation 'org.slf4j:slf4j-simple:2.0.13'
+}
+
+application {
+    mainClass = 'com.choregarden.migrationlambda.MigrationHandler'
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'com.choregarden.migrationlambda.MigrationHandler'
+    }
+}
