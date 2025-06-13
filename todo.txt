@@ -6,9 +6,9 @@ latest done:
 
 next steps:
 * migration lambda (java, w/ flyway packages)
-NEXT- got the lambda running locally using a local build; try again with the docker-based build now that there's a working model
-* deploy schema update in AWS using migration lambda
-
+NEXT: manually deploy the migration lamda, update terraform (and other?) so manual input is no longer needed
+* validate by deploying schema update in AWS using the migration lambda
+* review things and automate what can be and other prep for CI/CD as needed
 
 longer term:
 * deploy FE via ci-cd (to dev environment)
