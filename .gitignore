@@ -20,6 +20,7 @@ frontend/.env.json
 
 # Build outputs
 dist/
+build/
 
 # Docker
 docker-compose.override.yml
@@ -44,6 +45,9 @@ terraform.tfplan
 .terraformrc
 .terraform.lock.hcl
 
+# java and gradle
+.gradle/
+
 # Others
 .DS_Store
 .idea/
@@ -55,3 +59,7 @@ scripts/dev-resource-ids.ps1
 # Database SSL certs (do not commit private keys or certs)
 database/certs/server.key
 database/certs/server.crt
+
+# Ignore local explorations and validations
+hello-lambda/
+minimal-node/

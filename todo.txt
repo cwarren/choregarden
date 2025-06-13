@@ -6,6 +6,7 @@ latest done:
 
 next steps:
 * migration lambda (java, w/ flyway packages)
+NEXT- got the lambda running locally using a local build; try again with the docker-based build now that there's a working model
 * deploy schema update in AWS using migration lambda
 
 

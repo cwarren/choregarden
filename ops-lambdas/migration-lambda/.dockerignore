@@ -1,0 +1,11 @@
+# Ignore build output but DO NOT ignore src/
+build/
+# Ignore IDE/editor files
+*.iml
+.idea/
+*.vscode/
+# Ignore OS files
+.DS_Store
+Thumbs.db
+# Ignore other common files
+*.log
