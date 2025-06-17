@@ -1,16 +1,28 @@
 latest done:
-* add a pingdeep validation to the FE
-* create a /status section of the site which has all the ping stuff
-* set up db migration tool (flyway, probably)
-* simple schema change via flyway (local test/validation table and data)
+* validated migration lamba in AWS; invoked it successfully to run a simple migration
 
 next steps:
-* migration lambda (java, w/ flyway packages)
-NEXT: manually deploy the migration lamda, update terraform (and other?) so manual input is no longer needed
-* validate by deploying schema update in AWS using the migration lambda
-* review things and automate what can be and other prep for CI/CD as needed
+* set up branch protection in github & shift workflow to branches and merges rather than direct commits (allow self-review, since solo, but add notes about it to README)
+* set up user account and authentication leveraging Cognito
 
 longer term:
+* create protected API endpoint (/api/pingprotected)
+* create protect FE pages and sections on a page
+* iron out CI/CD for deployments & Terraform
 * deploy FE via ci-cd (to dev environment)
 * deploy BE via ci-cd (to dev environment)
-* deployment and migration via CI-CD
+* DB change deployment and migration via CI-CD (to dev environment)
+* do a dev rollback (FE, BE, DB)
+* implement / set up a prod environment
+* do a prod deploy
+* do a prod rollback (FE, BE, DB)
+
+docs/wiki/README
+* development tooling set up
+* AWS set up- basic org & account, initial terraform gotchas (set secrets, create ecr registries, etc.)
+* running things locally using docker
+* general workflow for FE update/deployment, and also BE and DB
+* details of CI/CD flow
+* architecture diagram
+* scaling handles / levers
+* logs & monitors

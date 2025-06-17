@@ -16,7 +16,7 @@ Also, Chore Garden is an exercise in creating a table-stakes application - with 
 ## Tech Stack
 - **Backend**: Node.js (Express) + TypeScript
 - **Frontend**: React + Tailwind
-- **Database**: PostgreSQL
+- **Database**: PostgreSQL, Flyway
 - **Job Queue**: BullMQ
 - **Authentication**: AWS Cognito
 - **Infrastructure**: Docker, Terraform, AWS
@@ -28,7 +28,9 @@ This monorepo will include the following:
 - `database/`: Database scripts, certs, migrations, etc.
 - `frontend/`: Frontend application
 - `infrastructure/`: Terraform scripts for infrastructure as code
-- `shared/`: Shared utilities and types
+- `ops-lambdas`: Lambdas related to operations and management rather than the app itself - e.g. a lambda to run flyway migrations
+- `scripts/`: small, custom tools to aid in development (run locally by developers)
+- `scripts/playbooks/`: in-repo documentation for common development actions (e.g. running migrations locally, starting/stopping the bastion, setting up a conneciton in DBeaver)
 
 ## Core Functionality & Characteristics
 - infrastructure fully spec-ed in terraform
