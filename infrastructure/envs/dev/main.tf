@@ -223,6 +223,11 @@ resource "aws_iam_role_policy" "migration_lambda_policy" {
       },
       {
         Effect = "Allow"
+        Action = ["s3:ListBucket"],
+        Resource = "${aws_s3_bucket.db_migrations.arn}"
+      },
+      {
+        Effect = "Allow"
         Action = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
         Resource = "arn:aws:logs:*:*:*"
       },
@@ -230,6 +235,18 @@ resource "aws_iam_role_policy" "migration_lambda_policy" {
         Effect = "Allow"
         Action = ["secretsmanager:GetSecretValue"],
         Resource = module.db_secret.arn
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ec2:CreateNetworkInterface",
+          "ec2:DescribeNetworkInterfaces",
+          "ec2:DeleteNetworkInterface",
+          "ec2:DescribeVpcs",
+          "ec2:DescribeSubnets",
+          "ec2:DescribeSecurityGroups"
+        ],
+        Resource = "*"
       }
     ]
   })
@@ -238,6 +255,7 @@ resource "aws_iam_role_policy" "migration_lambda_policy" {
 variable "migration_lambda_image_tag" {
   description = "ECR image tag for the migration Lambda (should be immutable, e.g., commit SHA)"
   type        = string
+  default     = "latest"
 }
 
 data "aws_ecr_image" "migration_lambda" {

@@ -63,3 +63,4 @@ database/certs/server.crt
 # Ignore local explorations and validations
 hello-lambda/
 minimal-node/
+migration-output.json
