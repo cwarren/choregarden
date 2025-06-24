@@ -109,6 +109,25 @@ module "frontend_static_site" {
   api_base_url = module.api_gateway.http_api_url
 }
 
+module "cognito" {
+  source        = "../../modules/cognito"
+  name          = "choregarden-dev"
+  domain_prefix = "choregarden-dev-${random_id.cognito_domain.hex}"
+  aws_region    = var.aws_region
+  callback_urls = [
+    "http://localhost:3000/",
+    "https://${module.frontend_static_site.cloudfront_url}/"
+  ]
+  logout_urls   = [
+    "http://localhost:3000/",
+    "https://${module.frontend_static_site.cloudfront_url}/"
+  ]
+}
+
+resource "random_id" "cognito_domain" {
+  byte_length = 4
+}
+
 resource "aws_vpc_endpoint" "secretsmanager" {
   vpc_id            = module.vpc.vpc_id
   service_name      = "com.amazonaws.${var.aws_region}.secretsmanager"
