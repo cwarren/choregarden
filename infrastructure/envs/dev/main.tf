@@ -98,8 +98,12 @@ module "bastion" {
 module "api_gateway" {
   source                = "../../modules/api_gateway"
   vpc_link_id           = aws_apigatewayv2_vpc_link.backend.id
-  nlb_arn               = module.app_backend.nlb_arn # Still pass for reference if needed
-  nlb_listener_arn      = module.app_backend.nlb_listener_arn # Pass the listener ARN for integration
+  nlb_arn               = module.app_backend.nlb_arn
+  nlb_listener_arn      = module.app_backend.nlb_listener_arn
+  cognito_user_pool_arn = module.cognito.user_pool_arn
+  cognito_user_pool_client_id = module.cognito.user_pool_client_id
+  cognito_user_pool_id  = module.cognito.user_pool_id
+  aws_region            = var.aws_region
 }
 
 module "frontend_static_site" {
@@ -107,6 +111,8 @@ module "frontend_static_site" {
   bucket_name = "choregarden-frontend-dev"
   environment = "dev"
   api_base_url = module.api_gateway.http_api_url
+  cognito_domain = module.cognito.domain
+  cognito_client_id = module.cognito.user_pool_client_id
 }
 
 module "cognito" {

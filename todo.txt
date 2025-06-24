@@ -1,12 +1,12 @@
 latest done:
 * validated migration lamba in AWS; invoked it successfully to run a simple migration
-
-next steps:
-* set up user account and authentication leveraging Cognito
-* create protect FE pages and sections on a page
 * create protected API endpoint (/api/pingprotected)
 
+next steps:
+* create protect FE pages and sections on a page
+
 longer term:
+* get users tracked / registered in the application DB - basic user account table
 * set up branch protection in github & shift workflow to branches and merges rather than direct commits (allow self-review, since solo, but add notes about it to README)
 * iron out CI/CD for deployments & Terraform
 * deploy FE via ci-cd (to dev environment)

@@ -13,3 +13,13 @@ variable "api_base_url" {
   description = "Base URL for the backend API, used by the frontend"
   type        = string
 }
+
+variable "cognito_domain" {
+  description = "Cognito domain for frontend config"
+  type        = string
+}
+
+variable "cognito_client_id" {
+  description = "Cognito client ID for frontend config"
+  type        = string
+}

@@ -31,6 +31,31 @@ resource "aws_apigatewayv2_route" "pingdeep" {
   target    = "integrations/${aws_apigatewayv2_integration.backend_vpc.id}"
 }
 
+resource "aws_apigatewayv2_authorizer" "cognito" {
+  api_id           = aws_apigatewayv2_api.http_api.id
+  authorizer_type  = "JWT"
+  identity_sources = ["$request.header.Authorization"]
+  name             = "cognito-authorizer"
+  jwt_configuration {
+    audience = [var.cognito_user_pool_client_id]
+    issuer   = "https://cognito-idp.${var.aws_region}.amazonaws.com/${var.cognito_user_pool_id}"
+  }
+}
+
+resource "aws_apigatewayv2_route" "pingprotected" {
+  api_id    = aws_apigatewayv2_api.http_api.id
+  route_key = "GET /api/pingprotected"
+  target    = "integrations/${aws_apigatewayv2_integration.backend_vpc.id}"
+  authorizer_id = aws_apigatewayv2_authorizer.cognito.id
+  authorization_type = "JWT"
+}
+
+resource "aws_apigatewayv2_route" "pingprotected_options" {
+  api_id    = aws_apigatewayv2_api.http_api.id
+  route_key = "OPTIONS /api/pingprotected"
+  target    = "integrations/${aws_apigatewayv2_integration.backend_vpc.id}"
+}
+
 output "http_api_url" {
   description = "Invoke URL for the HTTP API"
   value       = aws_apigatewayv2_api.http_api.api_endpoint

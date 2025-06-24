@@ -105,7 +105,9 @@ resource "aws_s3_object" "frontend_config" {
   bucket       = aws_s3_bucket.frontend.id
   key          = "config.json"
   content      = jsonencode({
-    REACT_APP_API_BASE_URL = var.api_base_url
+    REACT_APP_API_BASE_URL = var.api_base_url,
+    COGNITO_DOMAIN         = var.cognito_domain,
+    COGNITO_CLIENT_ID      = var.cognito_client_id
   })
   content_type = "application/json"
   acl          = "private"

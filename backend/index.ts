@@ -105,6 +105,19 @@ app.get('/api/pingdeep', (req: express.Request, res: express.Response) => {
   });
 });
 
+app.get('/api/pingprotected', (req: express.Request, res: express.Response) => {
+  // This endpoint is protected by API Gateway Cognito authorizer, so if the request reaches here, the user is authenticated.
+  const claims = req.headers['x-amzn-oidc-data'] || req.headers['authorization'];
+  res.json({ message: 'pong (protected)', claims });
+});
+
+app.options('/api/pingprotected', (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET,OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Authorization,Content-Type');
+  res.sendStatus(200);
+});
+
 const server = app.listen(port, host, () => {
   console.log(`Backend server is running on http://${host}:${port}`);
 });
