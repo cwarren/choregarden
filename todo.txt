@@ -5,10 +5,12 @@ latest done:
 * * in the nav bar, the log in button sends the user to a login page
 * nav bar shows login control or link to user profile
 
+in progress:
+* nav bar shows the email of the user, not the cognito ID - email is clickable link to account page
+* user profile shows basic info (username / email) and has a logout button
+
 next steps:
 * create protect FE pages and sections on a page
-* * user profile shows basic info (username / email) and has a logout button
-* nav bar shows the email of the user, not the cognito ID
 * get users tracked / registered in the application DB - basic user account table
 * * migration to create the table
 * * code in BE and maybe FE

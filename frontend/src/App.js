@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import StatusPage from './pages/StatusPage';
+import AccountPage from './pages/AccountPage';
 import AuthHandler from './components/AuthHandler';
 import { AuthProvider } from './contexts/AuthContext';
 
@@ -35,6 +36,7 @@ function App() {
         <Router>
           <Routes>
             <Route path="/status" element={<StatusPage apiBaseUrl={apiBaseUrl} />} />
+            <Route path="/account" element={<AccountPage config={config} />} />
             <Route path="/" element={<HomePage config={config} />} />
           </Routes>
         </Router>
