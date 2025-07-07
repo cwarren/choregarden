@@ -1,20 +1,16 @@
 latest done:
-* Cognito hosted UI for authentication - successful login and redirect to app home page
-* create protected API endpoint (/api/pingprotected)
-* FE status page has pings for the protected endpoint
-* * in the nav bar, the log in button sends the user to a login page
-* nav bar shows login control or link to user profile
-
-in progress:
 * nav bar shows the email of the user, not the cognito ID - email is clickable link to account page
 * user profile shows basic info (username / email) and has a logout button
+* user profile has link to reset password
+* change password functionality
+
+in progress:
+
 
 next steps:
-* create protect FE pages and sections on a page
 * get users tracked / registered in the application DB - basic user account table
 * * migration to create the table
 * * code in BE and maybe FE
-* user profile has link to reset password
 
 
 longer term:

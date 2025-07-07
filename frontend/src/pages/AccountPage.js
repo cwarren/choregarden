@@ -67,9 +67,14 @@ function AccountPage({ config }) {
             </div>
             
             <div>
-              <label className="block text-base font-medium text-red-700 mb-1">
+              <a
+                href={`https://${config.COGNITO_DOMAIN}/forgotPassword?client_id=${config.COGNITO_CLIENT_ID}&response_type=code&scope=email+openid+profile&redirect_uri=${encodeURIComponent(window.location.origin + '/')}`}
+                className="block text-base font-medium text-red-700 hover:text-red-800 underline mb-1"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Change Password
-              </label>
+              </a>
             </div>
 
             <div>
