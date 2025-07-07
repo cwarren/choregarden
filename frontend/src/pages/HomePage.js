@@ -2,10 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import HeaderNavBar from '../components/HeaderNavBar';
 
-function HomePage() {
+function HomePage({ config }) {
   return (
     <div className="App min-h-screen relative">
-      <HeaderNavBar onLogin={() => { /* TODO: implement login */ }} />
+      <HeaderNavBar config={config} />
       <Link
         to="/status"
         className="absolute right-4 bottom-4 text-xs text-link"

@@ -1,12 +1,21 @@
 latest done:
-* validated migration lamba in AWS; invoked it successfully to run a simple migration
+* Cognito hosted UI for authentication - successful login and redirect to app home page
 * create protected API endpoint (/api/pingprotected)
+* FE status page has pings for the protected endpoint
+* * in the nav bar, the log in button sends the user to a login page
+* nav bar shows login control or link to user profile
 
 next steps:
 * create protect FE pages and sections on a page
+* * user profile shows basic info (username / email) and has a logout button
+* nav bar shows the email of the user, not the cognito ID
+* get users tracked / registered in the application DB - basic user account table
+* * migration to create the table
+* * code in BE and maybe FE
+* user profile has link to reset password
+
 
 longer term:
-* get users tracked / registered in the application DB - basic user account table
 * set up branch protection in github & shift workflow to branches and merges rather than direct commits (allow self-review, since solo, but add notes about it to README)
 * iron out CI/CD for deployments & Terraform
 * deploy FE via ci-cd (to dev environment)

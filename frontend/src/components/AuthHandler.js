@@ -1,6 +1,9 @@
 import { useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function AuthHandler({ children, config }) {
+  const { refreshAuth } = useAuth();
+
   useEffect(() => {
     const url = new URL(window.location.href);
     const code = url.searchParams.get('code');
@@ -27,12 +30,12 @@ export default function AuthHandler({ children, config }) {
           localStorage.setItem('access_token', tokens.access_token);
           url.searchParams.delete('code');
           window.history.replaceState({}, document.title, url.pathname);
-          window.location.reload();
+          refreshAuth(); // Refresh the auth context
         })
         .catch(err => {
           console.error('Token exchange failed', err);
         });
     }
-  }, [config]);
+  }, [config, refreshAuth]);
   return children;
 }

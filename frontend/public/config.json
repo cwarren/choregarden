@@ -1,5 +1,5 @@
 {
   "REACT_APP_API_BASE_URL": "http://localhost:5000",
-  "COGNITO_CLIENT_ID": "set via terraform",
-  "COGNITO_DOMAIN": "set via terraform"
+  "COGNITO_CLIENT_ID": "7esidcr4va5r5mtfnn9bh9jvqe",
+  "COGNITO_DOMAIN": "choregarden-dev-e5c162b4.auth.us-east-1.amazoncognito.com"
 }
