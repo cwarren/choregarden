@@ -3,6 +3,8 @@ import { Pool } from 'pg';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import fs from 'fs';
+import { UserService } from './services/UserService';
+import { authenticateAndCreateUser } from './middleware/authMiddleware';
 
 dotenv.config();
 
@@ -88,6 +90,23 @@ if (secrets.NODE_ENV !== 'test') {
   connectWithRetry();
 }
 
+// Initialize UserService
+const userService = new UserService(pool);
+
+// Cognito configuration
+const cognitoConfig = {
+  awsRegion: secrets.AWS_REGION || 'us-east-1',
+  userPoolId: secrets.COGNITO_USER_POOL_ID,
+  clientId: secrets.COGNITO_CLIENT_ID
+};
+
+// Check that Cognito config is loaded
+if (!cognitoConfig.userPoolId || !cognitoConfig.clientId) {
+  console.error('Missing Cognito configuration:', cognitoConfig);
+}
+
+const authMiddleware = authenticateAndCreateUser(userService, cognitoConfig);
+
 app.get('/api/ping', (req: express.Request, res: express.Response) => {
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
   console.log(`Received /api/ping request from ${ip}`);
@@ -105,10 +124,46 @@ app.get('/api/pingdeep', (req: express.Request, res: express.Response) => {
   });
 });
 
-app.get('/api/pingprotected', (req: express.Request, res: express.Response) => {
-  // This endpoint is protected by API Gateway Cognito authorizer, so if the request reaches here, the user is authenticated.
-  const claims = req.headers['x-amzn-oidc-data'] || req.headers['authorization'];
-  res.json({ message: 'pong (protected)', claims });
+app.get('/api/pingprotected', authMiddleware, (req: express.Request, res: express.Response) => {
+  // This endpoint now creates/updates users automatically and provides user info
+  res.json({ 
+    message: 'pong (protected)', 
+    user: req.user?.appUser,
+    cognitoId: req.user?.cognitoUserId 
+  });
+});
+
+// User profile endpoint
+app.get('/api/user/profile', authMiddleware, (req: express.Request, res: express.Response) => {
+  res.json(req.user?.appUser);
+});
+
+// User registration endpoint (called after Cognito signup/login)
+app.post('/api/user/register', authMiddleware, (req: express.Request, res: express.Response) => {
+  // This endpoint will automatically create the user via the authMiddleware
+  // and return the created user data
+  res.json({
+    message: 'User registered successfully',
+    user: req.user?.appUser
+  });
+});
+
+// Update user profile endpoint
+app.put('/api/user/profile', authMiddleware, (req: express.Request, res: express.Response) => {
+  const { displayName } = req.body;
+  
+  userService.updateUser(req.user!.cognitoUserId, { displayName })
+    .then(updatedUser => {
+      if (updatedUser) {
+        res.json(updatedUser);
+      } else {
+        res.status(404).json({ error: 'User not found' });
+      }
+    })
+    .catch(error => {
+      console.error('Error updating user:', error);
+      res.status(500).json({ error: 'Failed to update user' });
+    });
 });
 
 app.options('/api/pingprotected', (req, res) => {

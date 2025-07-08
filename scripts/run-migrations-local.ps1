@@ -20,7 +20,9 @@ if (-not $DB_NAME -or -not $DB_USER -or -not $DB_PASS) {
 
 # Run Flyway Docker image
 Write-Host "Running Flyway migrations against local Postgres DB: $DB_NAME as $DB_USER..."
-docker run --rm -v "${PWD}/database/migrations:/flyway/sql" flyway/flyway:10 `
+$migrationsPath = "$PSScriptRoot/../database/migrations"
+Write-Host "Looking for migrations in: $migrationsPath"
+docker run --rm -v "${migrationsPath}:/flyway/sql" flyway/flyway:10 `
     -url="jdbc:postgresql://host.docker.internal:5432/$DB_NAME" `
     -user="$DB_USER" `
     -password="$DB_PASS" `

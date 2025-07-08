@@ -63,3 +63,30 @@ export const logout = (cognitoDomain, clientId, redirectUri = window.location.or
   
   window.location.href = `https://${cognitoDomain}/logout?${params}`;
 };
+
+export const registerUser = async (apiBaseUrl) => {
+  const { idToken } = getAuthTokens();
+  if (!idToken) {
+    throw new Error('No authentication token available');
+  }
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/api/user/register`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${idToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Registration failed: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error('Error registering user:', error);
+    throw error;
+  }
+};

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { registerUser } from '../utils/auth';
 
 export default function AuthHandler({ children, config }) {
   const { refreshAuth } = useAuth();
@@ -30,7 +31,20 @@ export default function AuthHandler({ children, config }) {
           localStorage.setItem('access_token', tokens.access_token);
           url.searchParams.delete('code');
           window.history.replaceState({}, document.title, url.pathname);
-          refreshAuth(); // Refresh the auth context
+          
+          // Register user in the app database after successful login
+          const apiBaseUrl = config.REACT_APP_API_BASE_URL || 'http://localhost:5000';
+          registerUser(apiBaseUrl)
+            .then(result => {
+              console.log('User registered in database:', result);
+            })
+            .catch(err => {
+              console.error('Failed to register user in database:', err);
+              // Don't block the login process if registration fails
+            })
+            .finally(() => {
+              refreshAuth(); // Refresh the auth context after registration attempt
+            });
         })
         .catch(err => {
           console.error('Token exchange failed', err);

@@ -1,19 +1,17 @@
 latest done:
-* nav bar shows the email of the user, not the cognito ID - email is clickable link to account page
-* user profile shows basic info (username / email) and has a logout button
-* user profile has link to reset password
-* change password functionality
+* fixed issue with local migration script - PWD doesn't work in powershell
+* migration to create the users table
+* BE code to create new users in the app automatically
+* implement frontend user registration call after successful login - users now created in DB immediately at signup
 
 in progress:
+* update api gateway specs to support the new user-related endpoints
 
 
 next steps:
-* get users tracked / registered in the application DB - basic user account table
-* * migration to create the table
-* * code in BE and maybe FE
-
 
 longer term:
+* the backend is making DB queries directly with SQL - think about whether this is a decent approach for this case or whether it'd be better to use some sort of ORM
 * set up branch protection in github & shift workflow to branches and merges rather than direct commits (allow self-review, since solo, but add notes about it to README)
 * iron out CI/CD for deployments & Terraform
 * deploy FE via ci-cd (to dev environment)
