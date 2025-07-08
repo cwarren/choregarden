@@ -1,0 +1,266 @@
+openapi: 3.0.1
+info:
+  title: ChoreGarden API
+  description: API for ChoreGarden application
+  version: 1.0.0
+  contact:
+    name: ChoreGarden Development Team
+  license:
+    name: MIT
+
+servers:
+  - url: https://api.choregarden.com
+    description: Production server
+  - url: http://localhost:5000
+    description: Local development server
+
+paths:
+  /api/ping:
+    get:
+      summary: Health check endpoint
+      description: Simple health check that returns a pong response
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: pong
+
+  /api/pingdeep:
+    get:
+      summary: Database health check
+      description: Health check that tests database connectivity
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Successful response with database time
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: pong with DB connection
+                  time:
+                    type: object
+                    description: Current database timestamp
+        '500':
+          description: Database connection failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/pingprotected:
+    get:
+      summary: Protected health check
+      description: Protected endpoint that requires authentication and returns user info
+      tags:
+        - Health
+        - Protected
+      security:
+        - CognitoAuthorizer: []
+      responses:
+        '200':
+          description: Successful response with user info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: pong (protected)
+                  user:
+                    $ref: '#/components/schemas/User'
+                  cognitoId:
+                    type: string
+                    description: Cognito user ID
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/user/register:
+    post:
+      summary: Register user in app database
+      description: Creates or updates user record in the application database after Cognito authentication
+      tags:
+        - Users
+        - Protected
+      security:
+        - CognitoAuthorizer: []
+      responses:
+        '200':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User registered successfully
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/user/profile:
+    get:
+      summary: Get user profile
+      description: Retrieves the current user's profile information
+      tags:
+        - Users
+        - Protected
+      security:
+        - CognitoAuthorizer: []
+      responses:
+        '200':
+          description: User profile data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Update user profile
+      description: Updates the current user's profile information
+      tags:
+        - Users
+        - Protected
+      security:
+        - CognitoAuthorizer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                displayName:
+                  type: string
+                  description: User's display name
+                  example: John Doe
+      responses:
+        '200':
+          description: User profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    CognitoAuthorizer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: AWS Cognito JWT token authentication
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Internal user ID
+        cognitoUserId:
+          type: string
+          description: Cognito user ID
+        email:
+          type: string
+          format: email
+          description: User's email address
+        displayName:
+          type: string
+          description: User's display name
+          nullable: true
+        isActive:
+          type: boolean
+          description: Whether the user account is active
+        createdAt:
+          type: string
+          format: date-time
+          description: When the user was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: When the user was last updated
+        lastLoginAt:
+          type: string
+          format: date-time
+          description: When the user last logged in
+          nullable: true
+      required:
+        - id
+        - cognitoUserId
+        - email
+        - isActive
+        - createdAt
+        - updatedAt
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        details:
+          type: string
+          description: Additional error details
+          nullable: true
+      required:
+        - error
+
+tags:
+  - name: Health
+    description: Health check endpoints
+  - name: Users
+    description: User management endpoints  
+  - name: Protected
+    description: Endpoints requiring authentication

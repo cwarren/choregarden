@@ -105,65 +105,95 @@ if (!cognitoConfig.userPoolId || !cognitoConfig.clientId) {
   console.error('Missing Cognito configuration:', cognitoConfig);
 }
 
-const authMiddleware = authenticateAndCreateUser(userService, cognitoConfig);
+// =================================
+// MIDDLEWARES
+// =================================
+
+// Authentication middleware that detects API Gateway vs direct backend calls at runtime
+const requireAuth = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  // Check if request came through API Gateway (has specific headers)
+  const hasApiGatewayHeaders = req.headers['x-amzn-requestid'] || req.headers['x-amz-cf-id'];
+  
+  if (hasApiGatewayHeaders) {
+    // API Gateway request - extract user info from JWT token (already validated by API Gateway)
+    const authHeader = req.headers.authorization;
+    if (authHeader?.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.split(' ')[1];
+        const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+        
+        // Set user info for API Gateway requests
+        req.user = {
+          cognitoUserId: payload.sub,
+          email: payload.email,
+          appUser: null // Will be looked up by endpoint if needed
+        };
+        
+        next();
+      } catch (error) {
+        console.error('Error parsing JWT payload:', error);
+        return res.status(401).json({ error: 'Invalid token format' });
+      }
+    } else {
+      return res.status(401).json({ error: 'No authorization header' });
+    }
+  } else {
+    // Direct backend call - use full JWT validation (includes user creation for backwards compatibility)
+    const fullAuthMiddleware = authenticateAndCreateUser(userService, cognitoConfig);
+    fullAuthMiddleware(req, res, next);
+  }
+};
+
+// Middleware to ensure user data is loaded (for endpoints that require it)
+const requireUser = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  // For API Gateway requests, look up existing user if not already loaded
+  if (req.user && !req.user.appUser) {
+    try {
+      req.user.appUser = await userService.findByCognitoId(req.user.cognitoUserId);
+    } catch (error) {
+      console.error('Error looking up user:', error);
+      return res.status(500).json({ error: 'Failed to look up user' });
+    }
+  }
+  
+  // Ensure user exists
+  if (!req.user?.appUser) {
+    return res.status(404).json({ error: 'User not found. Please register first.' });
+  }
+  
+  next();
+};
+
+// =================================
+// STATUS ENDPOINTS
+// =================================
+
 
 app.get('/api/ping', (req: express.Request, res: express.Response) => {
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
   console.log(`Received /api/ping request from ${ip}`);
-  res.json({ message: 'pong' });
+  res.json({ message: 'pong, BE20250708.3' });
 });
 
 app.get('/api/pingdeep', (req: express.Request, res: express.Response) => {
-  pool.query('SELECT NOW()', (err: Error | null, result: { rows: { [key: string]: any }[] } | undefined) => {
+  pool.query('select now() as curtime, max(version) as schemaversion from flyway_schema_history', (err: Error | null, result: { rows: { [key: string]: any }[] } | undefined) => {
     if (err) {
       console.error('Error executing query', err);
       return res.status(500).json({ error: 'Database query failed' });
     }
     console.log('Database query result:', result?.rows[0]);
-    res.json({ message: 'pong with DB connection', time: result?.rows[0] });
+    res.json({ message: 'pong with DB connection', 
+              time: result?.rows[0].curtime, 
+              schemaVersion: result?.rows[0].schemaversion });
   });
 });
 
-app.get('/api/pingprotected', authMiddleware, (req: express.Request, res: express.Response) => {
-  // This endpoint now creates/updates users automatically and provides user info
+app.get('/api/pingprotected', requireAuth, async (req: express.Request, res: express.Response) => {
+  // This is just a protected health check - no need to look up user data
   res.json({ 
     message: 'pong (protected)', 
-    user: req.user?.appUser,
     cognitoId: req.user?.cognitoUserId 
   });
-});
-
-// User profile endpoint
-app.get('/api/user/profile', authMiddleware, (req: express.Request, res: express.Response) => {
-  res.json(req.user?.appUser);
-});
-
-// User registration endpoint (called after Cognito signup/login)
-app.post('/api/user/register', authMiddleware, (req: express.Request, res: express.Response) => {
-  // This endpoint will automatically create the user via the authMiddleware
-  // and return the created user data
-  res.json({
-    message: 'User registered successfully',
-    user: req.user?.appUser
-  });
-});
-
-// Update user profile endpoint
-app.put('/api/user/profile', authMiddleware, (req: express.Request, res: express.Response) => {
-  const { displayName } = req.body;
-  
-  userService.updateUser(req.user!.cognitoUserId, { displayName })
-    .then(updatedUser => {
-      if (updatedUser) {
-        res.json(updatedUser);
-      } else {
-        res.status(404).json({ error: 'User not found' });
-      }
-    })
-    .catch(error => {
-      console.error('Error updating user:', error);
-      res.status(500).json({ error: 'Failed to update user' });
-    });
 });
 
 app.options('/api/pingprotected', (req, res) => {
@@ -172,6 +202,78 @@ app.options('/api/pingprotected', (req, res) => {
   res.set('Access-Control-Allow-Headers', 'Authorization,Content-Type');
   res.sendStatus(200);
 });
+
+
+// =================================
+// APPLICATION ENDPOINTS
+// =================================
+
+// ---------------------------------
+// User endpoints
+// ---------------------------------
+
+// User profile endpoint
+app.get('/api/user/profile', requireAuth, requireUser, async (req: express.Request, res: express.Response) => {
+  // User data is guaranteed to be loaded by requireUser middleware
+  res.json(req.user!.appUser);
+});
+
+// Update user profile endpoint
+app.put('/api/user/profile', requireAuth, requireUser, async (req: express.Request, res: express.Response) => {
+  // User data is guaranteed to be loaded by requireUser middleware
+  const { displayName } = req.body;
+  
+  try {
+    const updatedUser = await userService.updateUser(req.user!.cognitoUserId, { displayName });
+    if (updatedUser) {
+      res.json(updatedUser);
+    } else {
+      res.status(404).json({ error: 'User not found' });
+    }
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ error: 'Failed to update user' });
+  }
+});
+
+// User registration endpoint (called after Cognito signup/login)
+app.post('/api/user/register', requireAuth, async (req: express.Request, res: express.Response) => {
+  // Explicitly create/update user only in this endpoint
+  if (req.user && !req.user.appUser) {
+    try {
+      req.user.appUser = await userService.getOrCreateUserFromToken({
+        sub: req.user.cognitoUserId,
+        email: req.user.email
+      });
+    } catch (error) {
+      console.error('Error creating user:', error);
+      return res.status(500).json({ error: 'Failed to create user' });
+    }
+  }
+  
+  res.json({
+    message: 'User registered successfully',
+    user: req.user?.appUser
+  });
+});
+
+app.options('/api/user/register', (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'POST,OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Authorization,Content-Type');
+  res.sendStatus(200);
+});
+
+app.options('/api/user/profile', (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET,PUT,OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Authorization,Content-Type');
+  res.sendStatus(200);
+});
+
+// =================================
+// GO TIME !!!
+// =================================
 
 const server = app.listen(port, host, () => {
   console.log(`Backend server is running on http://${host}:${port}`);

@@ -48,7 +48,7 @@ function StatusPage({ apiBaseUrl }) {
     <div className="App min-h-screen flex flex-col items-center">
         <h1 className="text-3xl font-bold text-green-800 mb-6">Chore Garden Status</h1>
         <ul className="status-list bg-white rounded p-6 mb-8 mt-4" style={{ maxWidth: '90%' }}>
-            <li><b>Static site:</b> alive</li>
+            <li><b>Static site:</b> alive, deployed version FE20250708.3</li>
             <li><b>API URL:</b> {apiBaseUrl}</li>
             <li><b>Public API ping, public:</b> {apiStatus.status} {apiStatus.message && `[${apiStatus.message}]`}</li>
             <li><b>Public DB ping:</b> {dbStatus.status} {dbStatus.message && `[${dbStatus.message}]`}</li>

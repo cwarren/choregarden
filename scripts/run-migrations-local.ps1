@@ -27,3 +27,7 @@ docker run --rm -v "${migrationsPath}:/flyway/sql" flyway/flyway:10 `
     -user="$DB_USER" `
     -password="$DB_PASS" `
     -connectRetries=2 migrate
+#    -connectRetries=2 repair
+
+# NOTE: to repair a migration, temporarily comment out the `migrate` command above
+# and run `repair` instead. Then uncomment `migrate` to continue.

@@ -16,7 +16,7 @@ describe('API Endpoint Tests', () => {
   it('should return 200 and a pong message for /api/ping', async () => {
     const response = await request(app).get('/api/ping');
     expect(response.status).toBe(200);
-    expect(response.body.message).toBe('pong');
+    expect(response.body.message).toContain('pong');
   });
 });
 

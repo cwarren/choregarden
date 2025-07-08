@@ -11,7 +11,16 @@ export default function AuthHandler({ children, config }) {
     const COGNITO_DOMAIN = config.COGNITO_DOMAIN;
     const CLIENT_ID = config.COGNITO_CLIENT_ID;
     const REDIRECT_URI = window.location.origin + '/';
-    if (code && COGNITO_DOMAIN && CLIENT_ID) {
+    
+    // Prevent multiple executions by checking if we're already processing
+    if (code && COGNITO_DOMAIN && CLIENT_ID && !localStorage.getItem('token_exchange_in_progress')) {
+      localStorage.setItem('token_exchange_in_progress', 'true');
+      console.log('Token exchange attempt:', {
+        code: code.substring(0, 10) + '...',
+        cognitoDomain: COGNITO_DOMAIN,
+        clientId: CLIENT_ID,
+        redirectUri: REDIRECT_URI
+      });
       const params = new URLSearchParams();
       params.append('grant_type', 'authorization_code');
       params.append('client_id', CLIENT_ID);
@@ -23,12 +32,19 @@ export default function AuthHandler({ children, config }) {
         body: params
       })
         .then(res => {
-          if (!res.ok) throw new Error('Token exchange failed');
+          console.log('Token exchange response status:', res.status);
+          if (!res.ok) {
+            return res.text().then(text => {
+              console.error('Token exchange error response:', text);
+              throw new Error(`Token exchange failed: ${res.status} - ${text}`);
+            });
+          }
           return res.json();
         })
         .then(tokens => {
           localStorage.setItem('id_token', tokens.id_token);
           localStorage.setItem('access_token', tokens.access_token);
+          localStorage.removeItem('token_exchange_in_progress'); // Clear the flag
           url.searchParams.delete('code');
           window.history.replaceState({}, document.title, url.pathname);
           
@@ -47,6 +63,7 @@ export default function AuthHandler({ children, config }) {
             });
         })
         .catch(err => {
+          localStorage.removeItem('token_exchange_in_progress'); // Clear the flag on error
           console.error('Token exchange failed', err);
         });
     }

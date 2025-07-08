@@ -1,14 +1,16 @@
 latest done:
-* fixed issue with local migration script - PWD doesn't work in powershell
-* migration to create the users table
-* BE code to create new users in the app automatically
-* implement frontend user registration call after successful login - users now created in DB immediately at signup
+* create swagger / openapi spec
+* clean up and fix user endpoints in backend
+* cleaner terraform approach for specifying api gateway endpoints
+* openapi docs
+* added some hard-coded version identifiers to make it easy to verify the deployed code version
 
 in progress:
-* update api gateway specs to support the new user-related endpoints
-
+* get the authentication et al working for the deployed endpoints - login, sign up, status page
 
 next steps:
+* make sure users updated_at is NOT updated just for setting last_login_at (if need be, pull that into a separate user_activities table, which may be useful anyway... though is log-ish so has HIGH growth potential)
+* add simple version identifiers for FE and BE so the deployed versions can be identified (add to FE status page, and BE ping response)
 
 longer term:
 * the backend is making DB queries directly with SQL - think about whether this is a decent approach for this case or whether it'd be better to use some sort of ORM
