@@ -65,28 +65,14 @@ export const logout = (cognitoDomain, clientId, redirectUri = window.location.or
 };
 
 export const registerUser = async (apiBaseUrl) => {
-  const { idToken, accessToken } = getAuthTokens();
-  
-  // Determine if we're calling through API Gateway or direct backend
-  const isApiGateway = apiBaseUrl.includes('execute-api') || apiBaseUrl.includes('amazonaws.com');
-  
+  const { idToken } = getAuthTokens();
+
   // Use ID token for both API Gateway and direct backend
   // API Gateway is configured to expect client_id as audience (which ID tokens have)
   const token = idToken;
   if (!token) {
     throw new Error('No authentication token available');
   }
-
-  // Debug: Log token details
-  console.log('Token details:', {
-    isApiGateway,
-    usingIdToken: !!idToken,
-    usingAccessToken: !!accessToken,
-    usingToken: 'id',
-    tokenLength: token.length,
-    tokenStart: token.substring(0, 20) + '...',
-    hasBearer: token.startsWith('Bearer'),
-  });
 
   try {
     const response = await fetch(`${apiBaseUrl}/api/user/register`, {
@@ -98,14 +84,7 @@ export const registerUser = async (apiBaseUrl) => {
     });
 
     if (!response.ok) {
-      // Try to get more details about the error
       const errorText = await response.text();
-      console.error('API Error details:', {
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries()),
-        body: errorText
-      });
       throw new Error(`Registration failed: ${response.status} - ${errorText}`);
     }
 

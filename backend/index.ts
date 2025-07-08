@@ -117,29 +117,16 @@ const requireAuth = (req: express.Request, res: express.Response, next: express.
                               req.headers['x-amzn-trace-id'] ||
                               req.headers['via']?.includes('AmazonAPIGateway');
   
-  console.log('requireAuth - Headers:', {
-    'x-amzn-requestid': req.headers['x-amzn-requestid'],
-    'x-amz-cf-id': req.headers['x-amz-cf-id'],
-    'x-amzn-trace-id': req.headers['x-amzn-trace-id'],
-    'via': req.headers['via'],
-    'hasApiGatewayHeaders': hasApiGatewayHeaders,
-    'authorization': req.headers.authorization ? 'Bearer [present]' : 'missing'
-  });
-  console.log('requireAuth - All headers:', req.headers);
-  
   if (hasApiGatewayHeaders) {
     // API Gateway request - API Gateway should have already validated the JWT
-    // and may pass user info through headers, but let's also check the JWT payload
     const authHeader = req.headers.authorization;
     if (authHeader?.startsWith('Bearer ')) {
       try {
         const token = authHeader.split(' ')[1];
-        console.log('requireAuth - Token length:', token.length);
         
         // For API Gateway, we still need to decode the JWT to get user info
         // since API Gateway validation doesn't automatically pass user data
         const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-        console.log('requireAuth - JWT payload sub and email:', { sub: payload.sub, email: payload.email });
         
         // Set user info for API Gateway requests
         req.user = {
@@ -154,12 +141,10 @@ const requireAuth = (req: express.Request, res: express.Response, next: express.
         return res.status(401).json({ error: 'Invalid token format' });
       }
     } else {
-      console.error('requireAuth - No valid authorization header');
       return res.status(401).json({ error: 'No authorization header' });
     }
   } else {
     // Direct backend call - use full JWT validation
-    console.log('requireAuth - Using full JWT validation for direct backend call');
     const fullAuthMiddleware = authenticateAndCreateUser(userService, cognitoConfig);
     fullAuthMiddleware(req, res, next);
   }
@@ -193,13 +178,7 @@ const requireUser = async (req: express.Request, res: express.Response, next: ex
 app.get('/api/ping', (req: express.Request, res: express.Response) => {
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
   console.log(`Received /api/ping request from ${ip}`);
-  console.log('Headers for debugging:', {
-    'x-amzn-requestid': req.headers['x-amzn-requestid'],
-    'x-amz-cf-id': req.headers['x-amz-cf-id'],
-    'user-agent': req.headers['user-agent'],
-    'x-forwarded-for': req.headers['x-forwarded-for']
-  });
-  res.json({ message: 'pong, BE20250708.5' });
+  res.json({ message: 'pong, BE20250708.6' });
 });
 
 app.get('/api/pingdeep', (req: express.Request, res: express.Response) => {

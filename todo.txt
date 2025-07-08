@@ -1,16 +1,15 @@
 latest done:
-* create swagger / openapi spec
-* clean up and fix user endpoints in backend
-* cleaner terraform approach for specifying api gateway endpoints
-* openapi docs
-* added some hard-coded version identifiers to make it easy to verify the deployed code version
+* get the authentication et al working for the deployed endpoints - login, sign up, status page
 
 in progress:
-* get the authentication et al working for the deployed endpoints - login, sign up, status page
 
 next steps:
 * make sure users updated_at is NOT updated just for setting last_login_at (if need be, pull that into a separate user_activities table, which may be useful anyway... though is log-ish so has HIGH growth potential)
-* add simple version identifiers for FE and BE so the deployed versions can be identified (add to FE status page, and BE ping response)
+* look at starting to split up the BE code more, so it's not all in index.ts
+* implement user profile editing in the FE (and BE, if any changes are needed there)
+* * default the display name to the email address
+* * show the display name in the header instead of the login email address
+* * allow display name to be edited (and update nav bar when that happens)
 
 longer term:
 * the backend is making DB queries directly with SQL - think about whether this is a decent approach for this case or whether it'd be better to use some sort of ORM
@@ -24,6 +23,15 @@ longer term:
 * do a prod deploy
 * do a prod rollback (FE, BE, DB)
 * create/implement invite-a-friend
+
+tweaks:
+* on logging in, the log in button is still shown for a bit before the logged-in version of the header is shown, leading to an odd flicker experience
+* on refreshing the page on a non-root path, gives an error instead of refreshing as expected:
+This XML file does not appear to have any style information associated with it. The document tree is shown below.
+<Error>
+<Code>AccessDenied</Code>
+<Message>Access Denied</Message>
+</Error>
 
 docs/wiki/README
 * development tooling set up

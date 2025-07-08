@@ -15,12 +15,7 @@ export default function AuthHandler({ children, config }) {
     // Prevent multiple executions by checking if we're already processing
     if (code && COGNITO_DOMAIN && CLIENT_ID && !localStorage.getItem('token_exchange_in_progress')) {
       localStorage.setItem('token_exchange_in_progress', 'true');
-      console.log('Token exchange attempt:', {
-        code: code.substring(0, 10) + '...',
-        cognitoDomain: COGNITO_DOMAIN,
-        clientId: CLIENT_ID,
-        redirectUri: REDIRECT_URI
-      });
+      
       const params = new URLSearchParams();
       params.append('grant_type', 'authorization_code');
       params.append('client_id', CLIENT_ID);
@@ -32,7 +27,6 @@ export default function AuthHandler({ children, config }) {
         body: params
       })
         .then(res => {
-          console.log('Token exchange response status:', res.status);
           if (!res.ok) {
             return res.text().then(text => {
               console.error('Token exchange error response:', text);
