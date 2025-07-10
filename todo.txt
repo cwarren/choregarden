@@ -1,11 +1,12 @@
 latest done:
-* get the authentication et al working for the deployed endpoints - login, sign up, status page
+* make sure users updated_at is NOT updated just for setting last_login_at (if need be, pull that into a separate user_activities table, which may be useful anyway... though is log-ish so has HIGH growth potential)
+* * and that it IS actually updated on login
+* deploy FE and BE that have the dev logging cleaned out
+* split up the BE code more, so it's not all in index.ts
 
 in progress:
 
 next steps:
-* make sure users updated_at is NOT updated just for setting last_login_at (if need be, pull that into a separate user_activities table, which may be useful anyway... though is log-ish so has HIGH growth potential)
-* look at starting to split up the BE code more, so it's not all in index.ts
 * implement user profile editing in the FE (and BE, if any changes are needed there)
 * * default the display name to the email address
 * * show the display name in the header instead of the login email address

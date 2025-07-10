@@ -4,7 +4,8 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import request from 'supertest';
-import { app, pool, server } from './index';
+import { app, server } from './index';
+import { pool } from './src/app';
 
 describe('Trivial Test', () => {
   it('should always pass', () => {
