@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { login, logout } from '../utils/auth';
+import { authService } from '../services';
 
 function HeaderNavBar({ config = {} }) {
   const { authenticated, user, loading } = useAuth();
@@ -9,7 +9,7 @@ function HeaderNavBar({ config = {} }) {
   const handleLogin = () => {
     const { COGNITO_DOMAIN, COGNITO_CLIENT_ID } = config;
     if (COGNITO_DOMAIN && COGNITO_CLIENT_ID) {
-      login(COGNITO_DOMAIN, COGNITO_CLIENT_ID);
+      authService.login(COGNITO_DOMAIN, COGNITO_CLIENT_ID);
     } else {
       console.error('Cognito configuration not available');
     }
@@ -18,7 +18,7 @@ function HeaderNavBar({ config = {} }) {
   const handleLogout = () => {
     const { COGNITO_DOMAIN, COGNITO_CLIENT_ID } = config;
     if (COGNITO_DOMAIN && COGNITO_CLIENT_ID) {
-      logout(COGNITO_DOMAIN, COGNITO_CLIENT_ID);
+      authService.logout(COGNITO_DOMAIN, COGNITO_CLIENT_ID);
     } else {
       console.error('Cognito configuration not available');
     }

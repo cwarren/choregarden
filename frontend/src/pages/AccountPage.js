@@ -1,21 +1,43 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { logout } from '../utils/auth';
+import { authService, userService } from '../services';
 import HeaderNavBar from '../components/HeaderNavBar';
 
 function AccountPage({ config }) {
   const { user, authenticated, loading } = useAuth();
+  const [userProfile, setUserProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState(null);
+
+  // Fetch user profile when authenticated
+  useEffect(() => {
+    if (authenticated && config.API_BASE_URL) {
+      setProfileLoading(true);
+      userService.getUserProfile(config.API_BASE_URL)
+        .then(profile => {
+          setUserProfile(profile);
+          setProfileError(null);
+        })
+        .catch(error => {
+          console.error('Error fetching user profile:', error);
+          setProfileError(error.message);
+        })
+        .finally(() => {
+          setProfileLoading(false);
+        });
+    }
+  }, [authenticated, config.API_BASE_URL]);
 
   const handleLogout = () => {
     const { COGNITO_DOMAIN, COGNITO_CLIENT_ID } = config;
     if (COGNITO_DOMAIN && COGNITO_CLIENT_ID) {
-      logout(COGNITO_DOMAIN, COGNITO_CLIENT_ID);
+      authService.logout(COGNITO_DOMAIN, COGNITO_CLIENT_ID);
     } else {
       console.error('Cognito configuration not available');
     }
   };
 
-  if (loading) {
+  if (loading || profileLoading) {
     return (
       <div className="App min-h-screen">
         <HeaderNavBar config={config} />
@@ -81,9 +103,15 @@ function AccountPage({ config }) {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Display Name
               </label>
-              <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded border">
-                Not Yet Implemented
-              </p>
+              {profileError ? (
+                <p className="text-red-600 bg-red-50 px-3 py-2 rounded border">
+                  Error loading profile: {profileError}
+                </p>
+              ) : (
+                <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded border">
+                  {userProfile?.display_name || userProfile?.displayName || 'Not available'}
+                </p>
+              )}
             </div>
 
           </div>

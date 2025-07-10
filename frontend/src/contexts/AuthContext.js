@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { isAuthenticated, getUserInfo, getAuthTokens } from '../utils/auth';
+import { authService } from '../services';
 
 const AuthContext = createContext();
 
@@ -18,11 +18,11 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const checkAuth = () => {
-      const isAuth = isAuthenticated();
+      const isAuth = authService.isAuthenticated();
       setAuthenticated(isAuth);
       
       if (isAuth) {
-        const userInfo = getUserInfo();
+        const userInfo = authService.getUserInfoFromToken();
         setUser(userInfo);
       } else {
         setUser(null);
@@ -51,13 +51,13 @@ export const AuthProvider = ({ children }) => {
     user,
     authenticated,
     loading,
-    tokens: getAuthTokens(),
+    tokens: authService.getAuthTokens(),
     refreshAuth: () => {
-      const isAuth = isAuthenticated();
+      const isAuth = authService.isAuthenticated();
       setAuthenticated(isAuth);
       
       if (isAuth) {
-        const userInfo = getUserInfo();
+        const userInfo = authService.getUserInfoFromToken();
         setUser(userInfo);
       } else {
         setUser(null);

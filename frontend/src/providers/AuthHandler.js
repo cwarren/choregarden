@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { registerUser } from '../utils/auth';
+import { userService } from '../services';
 
 export default function AuthHandler({ children, config }) {
   const { refreshAuth } = useAuth();
@@ -44,7 +44,7 @@ export default function AuthHandler({ children, config }) {
           
           // Register user in the app database after successful login
           const apiBaseUrl = config.REACT_APP_API_BASE_URL || 'http://localhost:5000';
-          registerUser(apiBaseUrl)
+          userService.registerUser(apiBaseUrl)
             .then(result => {
               console.log('User registered in database:', result);
             })

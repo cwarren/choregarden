@@ -87,7 +87,8 @@ export class UserService {
   async getOrCreateUserFromToken(decodedToken: any): Promise<User> {
     const cognitoUserId = decodedToken.sub;
     const email = decodedToken.email;
-    const name = decodedToken.name || decodedToken['cognito:username'];
+    // Default display name to email address instead of Cognito username
+    const displayName = email;
 
     // Try to find existing user
     let user = await this.findByCognitoId(cognitoUserId);
@@ -97,7 +98,7 @@ export class UserService {
       user = await this.createUser({
         cognitoUserId,
         email,
-        displayName: name
+        displayName: displayName
       });
       console.log(`Created new user: ${email} (${cognitoUserId})`);
     }
