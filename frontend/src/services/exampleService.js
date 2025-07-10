@@ -138,7 +138,53 @@ export const exampleService = {
   // Check authentication flow if applicable
 
   // Step 9: Document the Service
-  // Add JSDoc comments to service methods (done above)
+  // Add or update JSDoc comments to service methods (done above)
   // Update documentation if the service introduces new patterns
   // Document any new environment variables or configuration needed
+    // EXAMPLE
+    //     * Fetches all chores for a specific user
+    //     * @param {string} apiBaseUrl - The base URL for the API
+    //     * @param {string} userId - The ID of the user
+    //     * @returns {Promise<Array>} Array of chore objects
+    //     * @throws {Error} When the request fails or user is not authenticated
+    // async getChores(apiBaseUrl, userId) {
+    //    IMPLEMENTATION HERE
+    // }
+
 };
+
+/*
+Common Service Patterns
+
+This section includes common service patterns that can be reused across different services.
+You can copy these patterns into your new service files as needed.
+
+CRUD Operations
+
+export const itemService = {
+  // Create
+  async createItem(apiBaseUrl, data) { IMPLEMENTATION HERE },
+  
+  // Read
+  async getItems(apiBaseUrl) { IMPLEMENTATION HERE },
+  async getItem(apiBaseUrl, id) { IMPLEMENTATION HERE },
+  
+  // Update
+  async updateItem(apiBaseUrl, id, data) { IMPLEMENTATION HERE },
+  
+  // Delete
+  async deleteItem(apiBaseUrl, id) { IMPLEMENTATION HERE }
+};
+
+Search and Filter
+export const searchService = {
+  async searchItems(apiBaseUrl, query, filters) { IMPLEMENTATION HERE },
+  async getFilterOptions(apiBaseUrl) { IMPLEMENTATION HERE }
+};
+
+File Upload
+export const fileService = {
+  async uploadFile(apiBaseUrl, file, metadata) { IMPLEMENTATION HERE },
+  async getFileUrl(apiBaseUrl, fileId) { IMPLEMENTATION HERE }
+};
+*/

@@ -6,6 +6,7 @@ latest done:
 * create rich docs for the frontend
 
 in progress:
+* better docs for the front end - clean up embedded code as much as possible
 * implement user profile editing in the FE (and BE, if any changes are needed there)
 * * default the display name to the email address
 

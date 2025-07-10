@@ -64,3 +64,8 @@ database/certs/server.crt
 hello-lambda/
 minimal-node/
 migration-output.json
+
+# Ignore temporary files
+*.tmp
+ORIG_*
+aside*
