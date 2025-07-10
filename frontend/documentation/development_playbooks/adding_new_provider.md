@@ -12,164 +12,110 @@ You need to add a new provider when:
 
 ## How
 
+**Example Provider** - See `src/providers/exampleProvider.js` for a complete template with common patterns and illustrations of these steps.
+
 ### Step 1: Create the Provider File
-1. **Create the provider file** in `src/providers/`
-   - Name: `{Purpose}Handler.js` or `{Purpose}Provider.js`
-   - Use descriptive names that indicate the setup purpose
+**Create the provider file** in `src/providers/`
+- Name: `{Purpose}Handler.js` or `{Purpose}Provider.js`
+- Use descriptive names that indicate the setup purpose
 
-### Step 2: Implement Provider Logic
-1. **Create a wrapper component** that performs setup work:
-   ```javascript
-   import { useEffect } from 'react';
-   
-   export default function SetupHandler({ children, config }) {
-     useEffect(() => {
-       // Initialization logic here
-       console.log('Setting up with config:', config);
-       
-       // Example: Initialize analytics
-       // analytics.init(config.analyticsKey);
-       
-       // Example: Set up error tracking
-       // errorTracker.configure(config.errorConfig);
-       
-       // Cleanup function if needed
-       return () => {
-         // Cleanup logic
-       };
-     }, [config]);
-     
-     // Provider just returns children - no UI
-     return children;
-   }
-   ```
+### Step 2: Import Dependencies
+**Import React hooks and third-party libraries** your provider needs
 
-### Step 3: Add to App.js
-1. **Import and wrap** the provider around your app:
-   ```javascript
-   import SetupHandler from './providers/SetupHandler';
-   
-   function App() {
-     const config = {
-       // Configuration for the provider
-     };
-     
-     return (
-       <SetupHandler config={config}>
-         {/* Rest of app components */}
-         <Router>
-           <Routes>
-             {/* Your routes */}
-           </Routes>
-         </Router>
-       </SetupHandler>
-     );
-   }
-   ```
+### Step 3: Define Provider Component
+**Create a wrapper component** that performs setup work
 
-### Step 4: Test the Provider
-1. **Verify initialization** happens on app startup
-   - Check console logs or network requests
-   - Verify third-party services are configured correctly
-   
-2. **Test error handling** for failed setup
-   - Simulate configuration errors
-   - Ensure app still loads if provider setup fails
-   
-3. **Ensure no performance impact** on app rendering
-   - Provider should not block initial render
-   - Heavy initialization should be async
+### Step 4: Implement Provider Logic
+**Follow the established pattern** for provider implementation:
+- Use `useEffect` for initialization and side effects
+- Run setup logic once on app startup
+- Handle configuration changes properly
+- Always include cleanup functions
+- Don't render UI - just return children
 
-## Examples
+### Step 5: Add to App.js
+**Import and wrap** the provider around your app components
 
-### Analytics Provider
-```javascript
-// src/providers/AnalyticsHandler.js
-import { useEffect } from 'react';
+### Step 6: Test the Provider
+**Verify the provider works correctly**:
+- Initialization happens on app startup
+- Error handling for failed setup
+- No performance impact on app rendering
+- Cleanup functions work properly
 
-export default function AnalyticsHandler({ children, analyticsConfig }) {
-  useEffect(() => {
-    if (analyticsConfig.enabled) {
-      // Initialize analytics
-      window.gtag('config', analyticsConfig.trackingId);
-    }
-  }, [analyticsConfig]);
-  
-  return children;
-}
-```
+### Step 7: Handle Provider Ordering
+**Consider the order** when multiple providers are used - dependencies should wrap dependents
 
-### Error Tracking Provider
-```javascript
-// src/providers/ErrorTrackingHandler.js
-import { useEffect } from 'react';
-import * as Sentry from '@sentry/react';
+## Provider Template
 
-export default function ErrorTrackingHandler({ children, sentryConfig }) {
-  useEffect(() => {
-    if (sentryConfig.dsn) {
-      Sentry.init({
-        dsn: sentryConfig.dsn,
-        environment: sentryConfig.environment
-      });
-    }
-  }, [sentryConfig]);
-  
-  return children;
-}
-```
+See `src/providers/exampleProvider.js` for a complete template that includes:
+
+### Standard Patterns
+- Consistent component structure
+- Proper useEffect usage
+- Configuration handling
+- Cleanup functions
+
+### Common Use Cases
+- Analytics initialization
+- Error tracking setup
+- Third-party service configuration
+- Global event listener management
+
+### Best Practices
+- Lightweight initialization
+- Async setup for heavy operations
+- Proper cleanup functions
+- Error boundary considerations
 
 ## Best Practices
 
-### Provider Ordering
-- Place providers in order of dependency
-- Authentication providers should wrap protected features
-- Analytics/tracking providers can be outermost
+### Provider Design
+- Keep initialization lightweight and fast
+- Use async initialization for heavy setup operations
+- Always include cleanup functions in useEffect
+- Don't render UI - providers are for setup only
 
 ### Error Handling
-- Always include error boundaries around providers
 - Don't let provider failures crash the app
-- Log provider initialization errors
+- Log initialization errors for debugging
+- Provide fallback behavior for failed setup
+- Test error scenarios and recovery
 
 ### Performance
-- Keep provider initialization lightweight
-- Use async initialization for heavy setup
-- Avoid blocking the main thread
+- Avoid blocking the main thread during initialization
+- Use proper dependency arrays in useEffect
+- Consider provider ordering for optimal loading
+- Test initialization time impact
 
-### Testing
-- Test provider initialization with various configurations
-- Test error scenarios and recovery
-- Verify cleanup functions work correctly
+### Provider Ordering
+- Place providers in order of dependency
+- Configuration providers should be outermost
+- Authentication providers should wrap protected features
+- Analytics/tracking providers can be middle layer
 
-## Common Patterns
+## Common Provider Patterns
 
-### Configuration Provider
+### Configuration Loading
 ```javascript
+// Provider that loads app configuration
 export default function ConfigProvider({ children }) {
-  const [config, setConfig] = useState(null);
-  
-  useEffect(() => {
-    fetch('/config.json')
-      .then(response => response.json())
-      .then(setConfig);
-  }, []);
-  
-  if (!config) {
-    return <div>Loading configuration...</div>;
-  }
-  
-  return children;
+  // Implementation in exampleProvider.js
 }
 ```
 
-### Feature Flag Provider
+### Third-Party Service Setup
 ```javascript
-export default function FeatureFlagHandler({ children, features }) {
-  useEffect(() => {
-    // Initialize feature flag service
-    featureFlags.init(features);
-  }, [features]);
-  
-  return children;
+// Provider that initializes external services
+export default function ServiceProvider({ children, config }) {
+  // Implementation in exampleProvider.js
+}
+```
+
+### Global Event Management
+```javascript
+// Provider that manages app-wide event listeners
+export default function EventProvider({ children }) {
+  // Implementation in exampleProvider.js
 }
 ```

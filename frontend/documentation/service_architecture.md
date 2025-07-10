@@ -29,77 +29,16 @@ Each service handles one business domain:
 - **Future services**: Chores, gardens, notifications (one domain per service)
 
 ### 2. Error Handling
-Services throw meaningful errors that UI components can handle:
-```javascript
-export const exampleService = {
-  async fetchData(apiBaseUrl, id) {
-    try {
-      const response = await fetch(`${apiBaseUrl}/data/${id}`, {
-        headers: authService.createAuthHeaders()
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
-      }
-      
-      return await response.json();
-    } catch (error) {
-      throw new Error(`Data fetch failed: ${error.message}`);
-    }
-  }
-};
-```
+Services throw meaningful errors that UI components can handle
 
 ### 3. Authentication Integration
-Services automatically handle token attachment:
-```javascript
-// Services use authService for authenticated requests
-const headers = authService.createAuthHeaders();
-const response = await fetch(url, { headers });
-```
+Services automatically handle token attachment
 
 ### 4. Reusability
 Services can be used by multiple components:
 - Import services where needed
 - No component-specific logic in services
 - Clear, documented interfaces
-
-## Service Implementation Patterns
-
-### Method Signature Pattern
-All service methods follow a consistent pattern:
-```javascript
-async methodName(apiBaseUrl, ...specificParams) {
-  // Implementation
-}
-```
-
-### Error Handling Pattern
-```javascript
-try {
-  const response = await fetch(url, options);
-  
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-  }
-  
-  return await response.json();
-} catch (error) {
-  throw new Error(`Operation failed: ${error.message}`);
-}
-```
-
-### Authentication Pattern
-```javascript
-const options = {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    ...authService.createAuthHeaders()
-  },
-  body: JSON.stringify(data)
-};
-```
 
 ## Service Organization
 
@@ -162,7 +101,7 @@ Test service integration with components:
 
 ## Adding New Services
 
-For step-by-step instructions on adding new services, see the [Adding a New Service](development_playbooks/adding_service.md) playbook.
+For step-by-step instructions on adding new services, see the [Adding a New Service](development_playbooks/adding_new_service.md) playbook.
 
 ### Service Template
 See `src/services/exampleService.js` for a complete template with:
@@ -170,3 +109,42 @@ See `src/services/exampleService.js` for a complete template with:
 - Error handling
 - Authentication integration
 - Documentation examples
+
+## Service Implementation Patterns
+
+### Method Signature Pattern
+All service methods follow a consistent pattern:
+```javascript
+async methodName(apiBaseUrl, ...specificParams) {
+  // Implementation
+}
+```
+
+### Error Handling Pattern
+```javascript
+try {
+  const response = await fetch(url, options);
+  
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+  
+  return await response.json();
+} catch (error) {
+  throw new Error(`Operation failed: ${error.message}`);
+}
+```
+
+### Authentication Pattern
+```javascript
+const options = {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    ...authService.createAuthHeaders()
+  },
+  body: JSON.stringify(data)
+};
+```
+
+

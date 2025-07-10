@@ -12,5 +12,6 @@ NOTE: 'garden' in this app is a metaphor, refering to a place in which chores gr
 
 ### Development Playbooks
 
-- **[Adding a New Provider](development_playbooks/adding_provider.md)**
-- **[Adding a New Service](development_playbooks/adding_service.md)**
+- **[Adding a New Provider](development_playbooks/adding_new_provider.md)**
+- **[Adding a New Service](development_playbooks/adding_new_service.md)**
+- **[Adding a Service to a Component](development_playbooks/adding_service_to_component.md)**

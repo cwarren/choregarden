@@ -2,6 +2,102 @@
 
 This guide covers development patterns, environment configuration, and workflow for the ChoreGarden frontend.
 
+## Development Workflow
+
+### Code Organization
+
+#### **File Structure**
+- One component per file
+- Named exports for services, default exports for components
+- Clear import organization
+
+#### **Import Organization**
+```javascript
+// 1. External libraries
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router } from 'react-router-dom';
+
+// 2. Internal modules (services, contexts)
+import { authService } from '../services';
+import { AuthContext } from '../contexts/AuthContext';
+
+// 3. Relative imports (components, utils)
+import HeaderNavBar from './HeaderNavBar';
+import './Component.css';
+```
+
+#### **Naming Conventions**
+- **Components**: PascalCase (`UserProfile.js`)
+- **Services**: camelCase (`userService.js`)
+- **Utilities**: camelCase (`formatDate.js`)
+- **Constants**: UPPER_SNAKE_CASE (`API_ENDPOINTS.js`)
+
+### Development Commands
+
+#### **Local Development**
+```bash
+# From /frontend folder
+npm start          # Start development server (port 3000)
+npm run build      # Build for production
+npm test           # Run tests
+npm run lint       # Run linting (if configured)
+```
+
+#### **Full Application**
+```bash
+# From project root
+docker-compose build   # Build latest version
+docker-compose up      # Start frontend, backend, and database
+docker-compose down    # Stop all services
+```
+
+### Testing Strategy
+
+#### **Component Testing**
+- Test component rendering
+- Test user interactions
+- Test props and state changes
+
+#### **Service Testing**
+- Test API integration
+- Test error handling
+- Test authentication integration
+
+#### **Integration Testing**
+- Test authentication flow
+- Test API data flow
+- Test error scenarios
+
+### Debugging
+
+#### **Development Tools**
+- React Developer Tools for component inspection
+- Network tab for API request debugging
+- Console for service error logging
+
+#### **Common Issues**
+- **CORS errors**: Ensure backend CORS configuration
+- **Authentication issues**: Check token validity and headers
+- **Styling issues**: Verify Tailwind class names and responsive breakpoints
+
+## Best Practices
+
+### Performance
+- Use `React.memo` for expensive components
+- Implement proper dependency arrays in `useEffect`
+- Avoid unnecessary re-renders through proper state management
+
+### Security
+- Never store sensitive data in localStorage beyond tokens
+- Validate all user inputs on both client and server
+- Use HTTPS in production
+
+### Maintainability
+- Keep components small and focused
+- Use descriptive names for functions and variables
+- Document complex business logic
+- Follow consistent code formatting
+
 ## Development Patterns
 
 ### Component Patterns
@@ -217,7 +313,7 @@ function SearchInput({ onSearch, placeholder }) {
 
 ### Environment Variables
 
-The application uses environment variables for configuration:
+The application uses environment variables for configuration (but NOT anything with sensitive info - just things like the API base URL - see public/config.json):
 
 #### **Frontend Environment Variables**
 - `REACT_APP_API_BASE_URL` - Backend API URL
@@ -235,109 +331,6 @@ REACT_APP_API_BASE_URL=http://localhost:8080
 
 ### Configuration Loading
 
-```javascript
-// Configuration is loaded from backend
-useEffect(() => {
-  fetch('/config.json')
-    .then(response => response.json())
-    .then(config => {
-      // Use config for Cognito setup
-    });
-}, []);
-```
+This is done in App.js, loaded from the service at runtime.
 
-## Development Workflow
 
-### Code Organization
-
-#### **File Structure**
-- One component per file
-- Named exports for services, default exports for components
-- Clear import organization
-
-#### **Import Organization**
-```javascript
-// 1. External libraries
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
-
-// 2. Internal modules (services, contexts)
-import { authService } from '../services';
-import { AuthContext } from '../contexts/AuthContext';
-
-// 3. Relative imports (components, utils)
-import HeaderNavBar from './HeaderNavBar';
-import './Component.css';
-```
-
-#### **Naming Conventions**
-- **Components**: PascalCase (`UserProfile.js`)
-- **Services**: camelCase (`userService.js`)
-- **Utilities**: camelCase (`formatDate.js`)
-- **Constants**: UPPER_SNAKE_CASE (`API_ENDPOINTS.js`)
-
-### Development Commands
-
-#### **Local Development**
-```bash
-# From /frontend folder
-npm start          # Start development server (port 3000)
-npm run build      # Build for production
-npm test           # Run tests
-npm run lint       # Run linting (if configured)
-```
-
-#### **Full Application**
-```bash
-# From project root
-docker-compose build   # Build latest version
-docker-compose up      # Start frontend, backend, and database
-docker-compose down    # Stop all services
-```
-
-### Testing Strategy
-
-#### **Component Testing**
-- Test component rendering
-- Test user interactions
-- Test props and state changes
-
-#### **Service Testing**
-- Test API integration
-- Test error handling
-- Test authentication integration
-
-#### **Integration Testing**
-- Test authentication flow
-- Test API data flow
-- Test error scenarios
-
-### Debugging
-
-#### **Development Tools**
-- React Developer Tools for component inspection
-- Network tab for API request debugging
-- Console for service error logging
-
-#### **Common Issues**
-- **CORS errors**: Ensure backend CORS configuration
-- **Authentication issues**: Check token validity and headers
-- **Styling issues**: Verify Tailwind class names and responsive breakpoints
-
-## Best Practices
-
-### Performance
-- Use `React.memo` for expensive components
-- Implement proper dependency arrays in `useEffect`
-- Avoid unnecessary re-renders through proper state management
-
-### Security
-- Never store sensitive data in localStorage beyond tokens
-- Validate all user inputs on both client and server
-- Use HTTPS in production
-
-### Maintainability
-- Keep components small and focused
-- Use descriptive names for functions and variables
-- Document complex business logic
-- Follow consistent code formatting

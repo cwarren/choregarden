@@ -2,8 +2,7 @@
 // This file serves as a template and should not be used in actual application code
 // Copy this pattern when creating new domain-specific services
 
-// ### Step 1: Create the Service File (you can copy this template as a starting point)
-// 1. **Create the service file** in `src/services/`
+// Step 1: Create the Service File (you can copy this template as a starting point)
 //    - Name: `{domain}Service.js` (e.g., `choreService.js`, `gardenService.js`)
 //    - Use camelCase for multi-word domains
 
