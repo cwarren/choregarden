@@ -1,14 +1,10 @@
 latest done:
-* refactor frontend to use services instead of generic 'utils'
-* add significant README for the frontend, which includes development playbooks
-* user display name defaults to email address on sign up
-* some reorganization of the frontend code to clarify providers and services
-* create rich docs for the frontend
+* fix issues with inconsistent use of api base url between account page and status page - move to a better general solution for both
+* account page shows actual display name instead of placeholder
+* default the display name to the email address
 
 in progress:
-* better docs for the front end - clean up embedded code as much as possible
-* implement user profile editing in the FE (and BE, if any changes are needed there)
-* * default the display name to the email address
+* implement user profile editing in the FE (and BE, if any changes are needed there) 
 
 next steps:
 * * show the display name in the header instead of the login email address

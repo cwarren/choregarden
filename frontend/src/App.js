@@ -7,21 +7,19 @@ import AuthHandler from './providers/AuthHandler';
 import { AuthProvider } from './contexts/AuthContext';
 
 function App() {
-  const [apiBaseUrl, setApiBaseUrl] = useState(null);
   const [config, setConfig] = useState({});
   const [configLoaded, setConfigLoaded] = useState(false);
 
-  useEffect(() => {
+    useEffect(() => {
     fetch('/config.json')
       .then((res) => res.json())
       .then((cfg) => {
-        setApiBaseUrl(cfg.REACT_APP_API_BASE_URL || 'http://localhost:5000');
         setConfig(cfg);
         setConfigLoaded(true);
       })
       .catch((err) => {
         console.error('Failed to load config.json:', err);
-        setApiBaseUrl('http://localhost:5000');
+        setConfig({});  // Empty config - let it fail obviously
         setConfigLoaded(true);
       });
   }, []);
@@ -35,7 +33,7 @@ function App() {
       <AuthHandler config={config}>
         <Router>
           <Routes>
-            <Route path="/status" element={<StatusPage apiBaseUrl={apiBaseUrl} />} />
+            <Route path="/status" element={<StatusPage config={config} />} />
             <Route path="/account" element={<AccountPage config={config} />} />
             <Route path="/" element={<HomePage config={config} />} />
           </Routes>

@@ -9,12 +9,25 @@ function AccountPage({ config }) {
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState(null);
 
+  // Debug logging to understand the authentication state
+  useEffect(() => {
+    console.log('AccountPage debug:', {
+      authenticated,
+      loading,
+      user,
+      hasApiBaseUrl: !!config.REACT_APP_API_BASE_URL,
+      apiBaseUrl: config.REACT_APP_API_BASE_URL
+    });
+  }, [authenticated, loading, user, config.REACT_APP_API_BASE_URL]);
+
   // Fetch user profile when authenticated
   useEffect(() => {
-    if (authenticated && config.API_BASE_URL) {
+    if (authenticated && config.REACT_APP_API_BASE_URL) {
+      console.log('Fetching user profile...');
       setProfileLoading(true);
-      userService.getUserProfile(config.API_BASE_URL)
+      userService.getUserProfile(config.REACT_APP_API_BASE_URL)
         .then(profile => {
+          console.log('User profile fetched:', profile);
           setUserProfile(profile);
           setProfileError(null);
         })
@@ -25,8 +38,11 @@ function AccountPage({ config }) {
         .finally(() => {
           setProfileLoading(false);
         });
+    } else {
+      console.log('Not fetching profile:', { authenticated, hasApiBaseUrl: !!config.REACT_APP_API_BASE_URL });
+      setProfileLoading(false);
     }
-  }, [authenticated, config.API_BASE_URL]);
+  }, [authenticated, config.REACT_APP_API_BASE_URL]);
 
   const handleLogout = () => {
     const { COGNITO_DOMAIN, COGNITO_CLIENT_ID } = config;
