@@ -166,7 +166,7 @@ function AccountPage({ config }) {
               </p>
             </div>
             
-            <div>
+            <div className="mb-3">
               <a
                 href={`https://${config.COGNITO_DOMAIN}/forgotPassword?client_id=${config.COGNITO_CLIENT_ID}&response_type=code&scope=email+openid+profile&redirect_uri=${encodeURIComponent(window.location.origin + '/')}`}
                 className="block text-base font-medium text-red-700 hover:text-red-800 underline mb-1"
@@ -190,7 +190,7 @@ function AccountPage({ config }) {
                   type="text"
                   value={displayName}
                   onChange={handleDisplayNameChange}
-                  className="w-full text-gray-900 bg-gray-50 px-3 py-2 rounded border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                  className="w-full text-gray-900 bg-white px-3 py-2 rounded border border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Enter your display name"
                 />
               )}
