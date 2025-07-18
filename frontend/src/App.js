@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import StatusPage from './pages/StatusPage';
 import AccountPage from './pages/AccountPage';
+import NotFoundPage from './pages/NotFoundPage';
 import AuthHandler from './providers/AuthHandler';
 import { AuthProvider } from './contexts/AuthContext';
 
@@ -36,6 +37,7 @@ function App() {
             <Route path="/status" element={<StatusPage config={config} />} />
             <Route path="/account" element={<AccountPage config={config} />} />
             <Route path="/" element={<HomePage config={config} />} />
+            <Route path="*" element={<NotFoundPage config={config} />} />
           </Routes>
         </Router>
       </AuthHandler>

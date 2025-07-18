@@ -1,16 +1,11 @@
 latest done:
-*  user profile editing - basic name editing
+* resolved !! on refreshing the page on a non-root path, gives an error instead of refreshing as expected (locally, gives a 404' similar when deployed)
 
 in progress:
-* implement user profile editing in the FE (and BE, if any changes are needed there)
-* * clean up UI - show appropriate signals about what's editable or not
-
+* show the display name in the header instead of the login email address
+* * update nav bar when the display name changes
 
 next steps:
-* !! on refreshing the page on a non-root path, gives an error instead of refreshing as expected (locally, gives a 404' similar when deployed)
-
-* * show the display name in the header instead of the login email address
-* * allow display name to be edited (and update nav bar when that happens)
 
 longer term:
 * the backend is making DB queries directly with SQL - think about whether this is a decent approach for this case or whether it'd be better to use some sort of ORM
