@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { authService, userService } from '../services';
+import { useUser } from '../contexts/UserContext';
+import { authService } from '../services';
 import HeaderNavBar from '../components/HeaderNavBar';
 
 function AccountPage({ config }) {
   const { user, authenticated, loading } = useAuth();
-  const [userProfile, setUserProfile] = useState(null);
-  const [profileLoading, setProfileLoading] = useState(true);
-  const [profileError, setProfileError] = useState(null);
+  const { userProfile, profileLoading, profileError, updateUserProfile, refreshUserProfile } = useUser();
   
   // State for editing display name
   const [displayName, setDisplayName] = useState('');
@@ -23,39 +22,20 @@ function AccountPage({ config }) {
       authenticated,
       loading,
       user,
+      userProfile,
       hasApiBaseUrl: !!config.REACT_APP_API_BASE_URL,
       apiBaseUrl: config.REACT_APP_API_BASE_URL
     });
-  }, [authenticated, loading, user, config.REACT_APP_API_BASE_URL]);
+  }, [authenticated, loading, user, userProfile, config.REACT_APP_API_BASE_URL]);
 
-  // Fetch user profile when authenticated
+  // Initialize editing state when userProfile changes
   useEffect(() => {
-    if (authenticated && config.REACT_APP_API_BASE_URL) {
-      console.log('Fetching user profile...');
-      setProfileLoading(true);
-      userService.getUserProfile(config.REACT_APP_API_BASE_URL)
-        .then(profile => {
-          console.log('User profile fetched:', profile);
-          setUserProfile(profile);
-          setProfileError(null);
-          
-          // Initialize editing state with current display name
-          const currentDisplayName = profile?.display_name || profile?.displayName || user?.email || '';
-          setDisplayName(currentDisplayName);
-          setOriginalDisplayName(currentDisplayName);
-        })
-        .catch(error => {
-          console.error('Error fetching user profile:', error);
-          setProfileError(error.message);
-        })
-        .finally(() => {
-          setProfileLoading(false);
-        });
-    } else {
-      console.log('Not fetching profile:', { authenticated, hasApiBaseUrl: !!config.REACT_APP_API_BASE_URL });
-      setProfileLoading(false);
+    if (userProfile) {
+      const currentDisplayName = userProfile?.display_name || userProfile?.displayName || user?.email || '';
+      setDisplayName(currentDisplayName);
+      setOriginalDisplayName(currentDisplayName);
     }
-  }, [authenticated, config.REACT_APP_API_BASE_URL]);
+  }, [userProfile, user?.email]);
 
   const handleLogout = () => {
     const { COGNITO_DOMAIN, COGNITO_CLIENT_ID } = config;
@@ -80,21 +60,15 @@ function AccountPage({ config }) {
   };
 
   const handleSave = async () => {
-    if (!config.REACT_APP_API_BASE_URL) {
-      setSaveError('API configuration not available');
-      return;
-    }
-
     setIsSaving(true);
     setSaveError(null);
     setSaveSuccess(false);
 
     try {
       const updates = { displayName: displayName };
-      const updatedProfile = await userService.updateUserProfile(config.REACT_APP_API_BASE_URL, updates);
+      await updateUserProfile(updates);
       
-      // Update the profile state with the response
-      setUserProfile(updatedProfile);
+      // Update the original display name for comparison
       setOriginalDisplayName(displayName);
       setIsEditing(false);
       setSaveSuccess(true);

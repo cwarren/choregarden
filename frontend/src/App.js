@@ -6,6 +6,7 @@ import AccountPage from './pages/AccountPage';
 import NotFoundPage from './pages/NotFoundPage';
 import AuthHandler from './providers/AuthHandler';
 import { AuthProvider } from './contexts/AuthContext';
+import { UserProvider } from './contexts/UserContext';
 
 function App() {
   const [config, setConfig] = useState({});
@@ -30,17 +31,19 @@ function App() {
   }
 
   return (
-    <AuthProvider>
-      <AuthHandler config={config}>
-        <Router>
-          <Routes>
-            <Route path="/status" element={<StatusPage config={config} />} />
-            <Route path="/account" element={<AccountPage config={config} />} />
-            <Route path="/" element={<HomePage config={config} />} />
-            <Route path="*" element={<NotFoundPage config={config} />} />
-          </Routes>
-        </Router>
-      </AuthHandler>
+    <AuthProvider config={config}>
+      <UserProvider config={config}>
+        <AuthHandler config={config}>
+          <Router>
+            <Routes>
+              <Route path="/status" element={<StatusPage config={config} />} />
+              <Route path="/account" element={<AccountPage config={config} />} />
+              <Route path="/" element={<HomePage config={config} />} />
+              <Route path="*" element={<NotFoundPage config={config} />} />
+            </Routes>
+          </Router>
+        </AuthHandler>
+      </UserProvider>
     </AuthProvider>
   );
 }

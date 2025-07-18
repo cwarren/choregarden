@@ -1,9 +1,10 @@
 latest done:
 * resolved !! on refreshing the page on a non-root path, gives an error instead of refreshing as expected (locally, gives a 404' similar when deployed)
+* completed show the display name in the header instead of the login email address
+* completed update nav bar when the display name changes
+* refactored AuthContext and UserContext separation for better architecture
 
 in progress:
-* show the display name in the header instead of the login email address
-* * update nav bar when the display name changes
 
 next steps:
 

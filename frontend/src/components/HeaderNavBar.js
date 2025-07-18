@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useUser } from '../contexts/UserContext';
 import { authService } from '../services';
 
 function HeaderNavBar({ config = {} }) {
   const { authenticated, user, loading } = useAuth();
+  const { userProfile } = useUser();
 
   const handleLogin = () => {
     const { COGNITO_DOMAIN, COGNITO_CLIENT_ID } = config;
@@ -46,7 +48,7 @@ function HeaderNavBar({ config = {} }) {
             to="/account"
             className="text-green-700 hover:text-green-800 font-medium underline"
           >
-            {user?.email || 'Account'}
+            {userProfile?.display_name || userProfile?.displayName || user?.email || 'Account'}
           </Link>
         ) : (
           <button
