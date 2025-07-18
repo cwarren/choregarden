@@ -1,12 +1,14 @@
 latest done:
-* fix issues with inconsistent use of api base url between account page and status page - move to a better general solution for both
-* account page shows actual display name instead of placeholder
-* default the display name to the email address
+*  user profile editing - basic name editing
 
 in progress:
-* implement user profile editing in the FE (and BE, if any changes are needed there) 
+* implement user profile editing in the FE (and BE, if any changes are needed there)
+* * clean up UI - show appropriate signals about what's editable or not
+
 
 next steps:
+* !! on refreshing the page on a non-root path, gives an error instead of refreshing as expected (locally, gives a 404' similar when deployed)
+
 * * show the display name in the header instead of the login email address
 * * allow display name to be edited (and update nav bar when that happens)
 

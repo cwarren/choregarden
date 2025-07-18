@@ -57,7 +57,10 @@ export const userService = {
     try {
       const response = await fetch(`${apiBaseUrl}/api/user/profile`, {
         method: 'PUT',
-        headers: authService.createAuthHeaders(),
+        headers: {
+          'Content-Type': 'application/json',
+          ...authService.createAuthHeaders()
+        },
         body: JSON.stringify(updates)
       });
 

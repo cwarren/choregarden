@@ -8,6 +8,14 @@ function AccountPage({ config }) {
   const [userProfile, setUserProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState(null);
+  
+  // State for editing display name
+  const [displayName, setDisplayName] = useState('');
+  const [originalDisplayName, setOriginalDisplayName] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Debug logging to understand the authentication state
   useEffect(() => {
@@ -30,6 +38,11 @@ function AccountPage({ config }) {
           console.log('User profile fetched:', profile);
           setUserProfile(profile);
           setProfileError(null);
+          
+          // Initialize editing state with current display name
+          const currentDisplayName = profile?.display_name || profile?.displayName || user?.email || '';
+          setDisplayName(currentDisplayName);
+          setOriginalDisplayName(currentDisplayName);
         })
         .catch(error => {
           console.error('Error fetching user profile:', error);
@@ -51,6 +64,55 @@ function AccountPage({ config }) {
     } else {
       console.error('Cognito configuration not available');
     }
+  };
+
+  const handleDisplayNameChange = (event) => {
+    const newValue = event.target.value;
+    setDisplayName(newValue);
+    
+    // Show save/cancel buttons if value has changed from original
+    const hasChanged = newValue !== originalDisplayName;
+    setIsEditing(hasChanged);
+    
+    // Clear any previous save messages
+    setSaveError(null);
+    setSaveSuccess(false);
+  };
+
+  const handleSave = async () => {
+    if (!config.REACT_APP_API_BASE_URL) {
+      setSaveError('API configuration not available');
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveError(null);
+    setSaveSuccess(false);
+
+    try {
+      const updates = { displayName: displayName };
+      const updatedProfile = await userService.updateUserProfile(config.REACT_APP_API_BASE_URL, updates);
+      
+      // Update the profile state with the response
+      setUserProfile(updatedProfile);
+      setOriginalDisplayName(displayName);
+      setIsEditing(false);
+      setSaveSuccess(true);
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (error) {
+      setSaveError(error.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setDisplayName(originalDisplayName);
+    setIsEditing(false);
+    setSaveError(null);
+    setSaveSuccess(false);
   };
 
   if (loading || profileLoading) {
@@ -124,11 +186,51 @@ function AccountPage({ config }) {
                   Error loading profile: {profileError}
                 </p>
               ) : (
-                <p className="text-gray-900 bg-gray-50 px-3 py-2 rounded border">
-                  {userProfile?.display_name || userProfile?.displayName || 'Not available'}
-                </p>
+                <input
+                  type="text"
+                  value={displayName}
+                  onChange={handleDisplayNameChange}
+                  className="w-full text-gray-900 bg-gray-50 px-3 py-2 rounded border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                  placeholder="Enter your display name"
+                />
               )}
             </div>
+
+            {/* Save/Cancel buttons and status messages */}
+            {isEditing && (
+              <div className="pt-4 border-t">
+                <div className="flex space-x-3">
+                  <button
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="bg-blue-600 text-white font-medium px-4 py-2 rounded shadow hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  >
+                    {isSaving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                  <button
+                    onClick={handleCancel}
+                    disabled={isSaving}
+                    className="bg-gray-500 text-white font-medium px-4 py-2 rounded shadow hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                
+                {saveError && (
+                  <p className="text-red-600 text-sm mt-2">
+                    Error saving: {saveError}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {saveSuccess && (
+              <div className="pt-2">
+                <p className="text-green-600 text-sm">
+                  Display name updated successfully!
+                </p>
+              </div>
+            )}
 
           </div>
         </div>
