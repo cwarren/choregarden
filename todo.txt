@@ -1,7 +1,7 @@
 latest done:
 * resolved !! on refreshing the page on a non-root path, gives an error instead of refreshing as expected (locally, gives a 404' similar when deployed)
-* completed show the display name in the header instead of the login email address
-* completed update nav bar when the display name changes
+* show the display name in the header instead of the login email address
+*  update nav bar when the display name changes
 * refactored AuthContext and UserContext separation for better architecture
 
 in progress:
@@ -9,12 +9,12 @@ in progress:
 next steps:
 
 longer term:
-* the backend is making DB queries directly with SQL - think about whether this is a decent approach for this case or whether it'd be better to use some sort of ORM
 * set up branch protection in github & shift workflow to branches and merges rather than direct commits (allow self-review, since solo, but add notes about it to README)
 * iron out CI/CD for deployments & Terraform
 * deploy FE via ci-cd (to dev environment)
 * deploy BE via ci-cd (to dev environment)
 * DB change deployment and migration via CI-CD (to dev environment)
+* the backend is making DB queries directly with SQL - think about whether this is a decent approach for this case or whether it'd be better to use some sort of ORM
 * do a dev rollback (FE, BE, DB)
 * implement / set up a prod environment
 * do a prod deploy
@@ -30,12 +30,7 @@ FE future considerations:
 
 tweaks & issues:
 * on logging in, the log in button is still shown for a bit before the logged-in version of the header is shown, leading to an odd flicker experience
-* on refreshing the page on a non-root path, gives an error instead of refreshing as expected:
-This XML file does not appear to have any style information associated with it. The document tree is shown below.
-<Error>
-<Code>AccessDenied</Code>
-<Message>Access Denied</Message>
-</Error>
+
 
 docs/wiki/README
 * development tooling set up
