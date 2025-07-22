@@ -1,12 +1,10 @@
 latest done:
-* resolved !! on refreshing the page on a non-root path, gives an error instead of refreshing as expected (locally, gives a 404' similar when deployed)
-* show the display name in the header instead of the login email address
-*  update nav bar when the display name changes
-* refactored AuthContext and UserContext separation for better architecture
 
 in progress:
+* major in-repo documentation overhaul and extension- establish common patterns and fill in gaps with reasonable first drafts, formalize some thing before diving deeper into CICD
 
 next steps:
+* extract implementation specifics from design decisions documents into new playbooks (link to the relevant playbook from the design decision)
 
 longer term:
 * set up branch protection in github & shift workflow to branches and merges rather than direct commits (allow self-review, since solo, but add notes about it to README)
@@ -14,12 +12,21 @@ longer term:
 * deploy FE via ci-cd (to dev environment)
 * deploy BE via ci-cd (to dev environment)
 * DB change deployment and migration via CI-CD (to dev environment)
+* document additional thougths about schema (chore templates, chore template groups, garden templates, etc.)
+* give the frontend and backend tests some teeth - there's enough there at this point that actual tests would be useful
+* think about stripping out Tailwind - the more I think about it and work with it the less I like it; replace with an actual design framework, or just hand-roll the CSS (AI assistance makes this a viable approach)
 * the backend is making DB queries directly with SQL - think about whether this is a decent approach for this case or whether it'd be better to use some sort of ORM
 * do a dev rollback (FE, BE, DB)
 * implement / set up a prod environment
 * do a prod deploy
 * do a prod rollback (FE, BE, DB)
 * create/implement invite-a-friend
+* tackle integration tests on dev deployment
+* tackle POC for job processing (chore growth) - just get something to run and touch the DB, no real functionality yet
+* POC for messaging and/or events
+* integration with some feature flagging system / service (must have a free level)
+* integration with some payment processor system / service (must have a free level)
+* replace the authentication hosted UI with an app-specific one (still use Cognito under the hood); MAYBE just style the hosted UI... but probably better to just own it within the app
 
 FE future considerations:
 - **State Management**: Consider Redux Toolkit or Zustand for complex state
