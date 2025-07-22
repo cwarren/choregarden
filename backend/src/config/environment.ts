@@ -24,6 +24,8 @@ function loadJsonEnv(varName: string): any {
 export const secrets = loadJsonEnv('CHOREGARDEN_SECRETS');
 export const dbSecrets = loadJsonEnv('CHOREGARDEN_DB_SECRETS');
 
+// TODO: strip out these defaults - lack of config should be an error and should fail fast
+
 export const config = {
   port: Number(secrets.BACKEND_PORT) || 5000,
   host: '0.0.0.0',

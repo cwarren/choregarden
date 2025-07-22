@@ -191,20 +191,6 @@ Use AWS Secrets Manager for sensitive operational data (database credentials, AP
 - Need automatic secret rotation capabilities
 - Must integrate with existing AWS infrastructure
 
-### Implementation Pattern
-```java
-// Java example for database credentials
-private DatabaseConfig getDatabaseConfig() {
-    SecretsManagerClient client = SecretsManagerClient.create();
-    GetSecretValueRequest request = GetSecretValueRequest.builder()
-        .secretId("choregarden-db-credentials")
-        .build();
-    
-    String secretString = client.getSecretValue(request).secretString();
-    return parseSecrets(secretString);
-}
-```
-
 ### Rationale
 1. **Security**: Encrypted at rest and in transit
 2. **Rotation**: Automatic credential rotation support
@@ -221,23 +207,6 @@ private DatabaseConfig getDatabaseConfig() {
 
 ### Decision
 Implement comprehensive error handling with CloudWatch integration for all Lambda functions.
-
-### Approach
-```java
-// Java error handling pattern
-try {
-    executeMigration();
-    return successResponse();
-} catch (FlywayException e) {
-    logger.error("Migration failed", e);
-    publishMetric("MigrationFailure", 1);
-    return errorResponse(e);
-} catch (Exception e) {
-    logger.error("Unexpected error", e);
-    publishMetric("UnexpectedError", 1);
-    throw new RuntimeException(e);
-}
-```
 
 ### Monitoring Components
 1. **CloudWatch Logs**: Detailed execution logging with structured formats

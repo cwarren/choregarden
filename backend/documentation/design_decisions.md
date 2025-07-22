@@ -42,16 +42,6 @@ Support both API Gateway-validated and direct backend JWT validation.
 ### Decision
 Use connection pooling with retry logic and graceful degradation.
 
-### Implementation
-```typescript
-// Database configuration with retry logic
-const pool = new Pool({
-  connectionTimeoutMillis: 5000,
-  idleTimeoutMillis: 30000,
-  max: 10, // Maximum pool size
-});
-```
-
 ### Rationale
 1. **Performance**: Reuse connections, avoid connection overhead
 2. **Reliability**: Retry logic handles temporary database issues
@@ -67,17 +57,6 @@ const pool = new Pool({
 
 ### Decision
 Centralized error handling in controllers with consistent response format.
-
-### Implementation
-```typescript
-// Consistent error response format
-{
-  error: string,
-  message: string,
-  statusCode: number,
-  timestamp: string
-}
-```
 
 ### Rationale
 1. **Consistency**: All API errors follow same format
@@ -97,22 +76,6 @@ Centralized error handling in controllers with consistent response format.
 ### Decision
 Extend Express Request interface to include authenticated user data.
 
-### Implementation
-```typescript
-// src/types/express.ts
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        sub: string;
-        username: string;
-        email: string;
-      };
-    }
-  }
-}
-```
-
 ### Rationale
 1. **Type Safety**: Compile-time checking for user data access
 2. **IDE Support**: Better autocomplete and error detection
@@ -123,22 +86,6 @@ declare global {
 
 ### Decision
 Use factory functions for service instantiation and dependency injection.
-
-### Implementation
-```typescript
-// Service factory
-export const createUserService = (pool: Pool) => {
-  return new UserService(pool);
-};
-
-// Controller factory
-export const createUserController = (userService: UserService) => {
-  return {
-    getUserProfile: (req: Request, res: Response) => { /* ... */ },
-    updateUserProfile: (req: Request, res: Response) => { /* ... */ }
-  };
-};
-```
 
 ### Rationale
 1. **Testability**: Easy to inject mock dependencies for testing
@@ -169,24 +116,6 @@ Use 'latest' tag for backend container images instead of semantic versioning or 
 3. **Immediate Deployment**: Latest code changes immediately available for deployment
 4. **Solo Development**: No parallel version requirements or team coordination needs
 5. **Development Focus**: Emphasis on rapid iteration over formal release management
-
-### Implementation
-```yaml
-# GitHub Actions deployment
-- name: Build and push backend image
-  run: |
-    docker build -t choregarden-backend .
-    docker tag choregarden-backend:latest $ECR_URI/choregarden-backend:latest
-    docker push $ECR_URI/choregarden-backend:latest
-
-# ECS service always uses latest
-- name: Update ECS service
-  run: |
-    aws ecs update-service \
-      --cluster choregarden-dev \
-      --service backend \
-      --force-new-deployment
-```
 
 ### Trade-offs
 - **Rollback Limitations**: Cannot rollback to specific previous versions easily
@@ -310,19 +239,6 @@ Follow REST principles with comprehensive OpenAPI specification.
 Use environment variables with validation and defaults.
 
 TODO: review the use of defaults here (might not actually be using them; shouldn't be). Intended decision is to avoid hard-coding default values for config settings. Primary rationale is to fail fast and clearly when config values or system are invalid.
-
-### Implementation
-```typescript
-// src/config/environment.ts
-export const config = {
-  port: parseInt(process.env.PORT || '5000'),
-  database: {
-    host: process.env.POSTGRES_HOST || 'localhost',
-    // ... other config
-  },
-  // Validation on startup
-};
-```
 
 ### Rationale
 1. **Security**: Sensitive values not in source code

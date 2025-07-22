@@ -162,25 +162,6 @@ Use AWS ECS with Fargate for backend application hosting.
 3. **AWS Integration**: Native integration with ALB, CloudWatch, IAM
 4. **Simplicity**: Less complex than Kubernetes for single application
 
-### Implementation Details
-```hcl
-# ECS Configuration
-service {
-  task_definition = "backend"
-  desired_count   = var.desired_task_count
-  
-  deployment_configuration {
-    maximum_percent         = 200
-    minimum_healthy_percent = 50
-  }
-  
-  load_balancer {
-    target_group_arn = aws_lb_target_group.backend.arn
-    container_name   = "backend"
-    container_port   = 5000
-  }
-}
-```
 
 ### Alternatives Considered
 - **EKS**: More complex and expensive for single application
@@ -192,25 +173,6 @@ service {
 
 ### Decision
 Use AWS RDS PostgreSQL with automated backups and Multi-AZ for production.
-
-### Configuration
-```hcl
-# Database configuration
-instance_class = {
-  dev  = "db.t3.micro"     # Cost-optimized
-  prod = "db.t3.small"     # Performance-optimized
-}
-
-multi_az = {
-  dev  = false  # Cost savings
-  prod = true   # High availability
-}
-
-backup_retention_period = {
-  dev  = 3   # Minimal retention
-  prod = 7   # Week of backups
-}
-```
 
 ### Rationale
 1. **Managed Service**: Automated patching, backups, and maintenance
@@ -243,73 +205,11 @@ User Request → CloudFront → S3 Bucket (Origin)
 4. **Security**: Origin Access Control (OAC) prevents direct S3 access
 5. **SSL/TLS**: Free SSL certificates via AWS Certificate Manager
 
-### Configuration Strategy
-```hcl
-# CloudFront distribution
-origin {
-  domain_name = aws_s3_bucket.frontend.bucket_regional_domain_name
-  origin_id   = "S3-${aws_s3_bucket.frontend.id}"
-  
-  origin_access_control_id = aws_cloudfront_origin_access_control.default.id
-}
-
-default_cache_behavior {
-  compress = true
-  viewer_protocol_policy = "redirect-to-https"
-  
-  # SPA routing support
-  custom_error_response {
-    error_code         = 404
-    response_code      = 200
-    response_page_path = "/index.html"
-  }
-}
-```
-
 ## GitHub Actions OIDC for CI/CD Authentication
 
 ### Decision
 Use GitHub Actions with OIDC provider for AWS authentication instead of long-lived access keys.
 
-### Implementation
-```hcl
-# OIDC Provider for GitHub Actions
-resource "aws_iam_openid_connect_provider" "github" {
-  url = "https://token.actions.githubusercontent.com"
-  
-  client_id_list = ["sts.amazonaws.com"]
-  
-  thumbprint_list = [
-    "6938fd4d98bab03faadb97b34396831e3780aea1"
-  ]
-}
-
-# Role for GitHub Actions
-resource "aws_iam_role" "github_actions" {
-  name = "GitHubActionsRole"
-  
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRoleWithWebIdentity"
-        Effect = "Allow"
-        Principal = {
-          Federated = aws_iam_openid_connect_provider.github.arn
-        }
-        Condition = {
-          StringEquals = {
-            "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-          }
-          StringLike = {
-            "token.actions.githubusercontent.com:sub" = "repo:cwarren/choregarden:*"
-          }
-        }
-      }
-    ]
-  })
-}
-```
 
 ### Rationale
 1. **Security**: No long-lived AWS access keys in GitHub secrets
@@ -329,23 +229,6 @@ resource "aws_iam_role" "github_actions" {
 ### Decision
 Use AWS Secrets Manager for application secrets and database credentials.
 
-### Strategy
-```hcl
-# Database credentials
-resource "aws_secretsmanager_secret" "db_credentials" {
-  name = "choregarden-${var.environment}-db-credentials"
-  
-  rotation_rules {
-    automatically_after_days = 30
-  }
-}
-
-# Application configuration
-resource "aws_secretsmanager_secret" "app_config" {
-  name = "choregarden-${var.environment}-app-config"
-}
-```
-
 ### Rationale
 1. **Security**: Encrypted storage with automatic rotation
 2. **Integration**: Native ECS and Lambda integration
@@ -362,26 +245,6 @@ resource "aws_secretsmanager_secret" "app_config" {
 
 ### Decision
 Prioritize cost optimization throughout infrastructure design while maintaining security and reliability.
-
-### Implementation Strategies
-
-**Development Environment:**
-```hcl
-# Cost-optimized settings
-instance_type = "t3.micro"
-multi_az = false
-nat_gateway_count = 1
-backup_retention_days = 3
-```
-
-**Production Environment:**
-```hcl
-# Balanced cost and reliability
-instance_type = "t3.small"
-multi_az = true
-nat_gateway_count = 2
-backup_retention_days = 7
-```
 
 ### Cost Control Mechanisms
 1. **Resource Tagging**: Comprehensive cost allocation tags

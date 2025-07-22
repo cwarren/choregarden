@@ -13,24 +13,6 @@ This document outlines planned enhancements and evolution paths for the Chore Ga
 - API key authentication for third-party integrations
 - Session management and refresh token handling
 
-**Implementation Approach**:
-```typescript
-// Enhanced auth middleware
-interface UserPermissions {
-  household: string[];
-  tasks: string[];
-  admin: boolean;
-}
-
-interface AuthenticatedUser {
-  sub: string;
-  username: string;
-  email: string;
-  permissions: UserPermissions;
-  mfaVerified?: boolean;
-}
-```
-
 ### Background Job Processing
 
 **Current**: Synchronous request processing  
@@ -93,19 +75,6 @@ API Endpoint → Queue Job → Background Worker → Database Update → WebSock
 - API response caching for read-heavy endpoints
 - Real-time data caching (active tasks, user status)
 - Cache invalidation strategies
-
-**Implementation Strategy**:
-```typescript
-// Cache-aside pattern
-const getCachedUserProfile = async (userId: string) => {
-  const cached = await redis.get(`user:${userId}`);
-  if (cached) return JSON.parse(cached);
-  
-  const user = await userService.getProfile(userId);
-  await redis.setex(`user:${userId}`, 300, JSON.stringify(user));
-  return user;
-};
-```
 
 ### Real-Time Features
 

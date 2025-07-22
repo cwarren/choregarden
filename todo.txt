@@ -1,7 +1,7 @@
 latest done:
+* major in-repo documentation overhaul and extension- establish common patterns and fill in gaps with reasonable first drafts, formalize some thing before diving deeper into CICD
 
 in progress:
-* major in-repo documentation overhaul and extension- establish common patterns and fill in gaps with reasonable first drafts, formalize some thing before diving deeper into CICD
 
 next steps:
 * extract implementation specifics from design decisions documents into new playbooks (link to the relevant playbook from the design decision)
