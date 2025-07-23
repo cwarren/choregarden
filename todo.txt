@@ -1,18 +1,23 @@
 latest done:
 * extract implementation specifics from design decisions and other documents
-
-in progress:
 * create dev branch
 * set up branch protection in github (allow self-review, since solo, but add notes about it to README)
 * shift workflow to branches and merges rather than direct commits 
 
+in progress:
+* add docs for dev environment set up
+* fix some internal docs linking
+* deploy FE via ci-cd (to dev environment)
+
 next steps:
 * iron out CI/CD for deployments & Terraform
-* deploy FE via ci-cd (to dev environment)
-* deploy BE via ci-cd (to dev environment)
-* DB change deployment and migration via CI-CD (to dev environment)
+* * deploy BE via ci-cd (to dev environment)
+* * DB change deployment and migration via CI-CD (to dev environment)
 
 longer term:
+* add documentation for manual deployments (FE, BE, DB, infra, ops lambdas)
+* add doc steps for local db cert set up
+* add doc steps for DBeaver connection to deployed DB
 * document additional thougths about schema (chore templates, chore template groups, garden templates, etc.)
 * give the frontend and backend tests some teeth - there's enough there at this point that actual tests would be useful
 * think about stripping out Tailwind - the more I think about it and work with it the less I like it; replace with an actual design framework, or just hand-roll the CSS (AI assistance makes this a viable approach)

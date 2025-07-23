@@ -6,10 +6,11 @@ Also, Chore Garden is an exercise in creating a table-stakes application - with 
 
 ## Documentation
 - this file - General project information
-- [Development Workflow](./documentation/development_workflow.md) - Development process and local setup
-- [Architecture](./documentation/architecture.md) - System architecture overview
-- [Design Decisions](./documentation/design_decisions.md) - Context and rationale for key decisions
-- [Future Considerations](./documentation/future_considerations.md) - Planned extensions and evolution
+- [Development Environment Setup](./setup_dev_environment.md) - Complete guide for setting up local development
+- [Development Workflow](./development_workflow.md) - Development process and branch strategy
+- [Architecture](./architecture.md) - System architecture overview
+- [Design Decisions](./design_decisions.md) - Context and rationale for key decisions
+- [Future Considerations](./future_considerations.md) - Planned extensions and evolution
 
 ## Features
 - Dynamic chore flows

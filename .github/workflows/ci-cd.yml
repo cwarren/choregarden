@@ -45,13 +45,13 @@ jobs:
         run: |
           npm test
 
+      - name: Run frontend tests
+        working-directory: ./frontend
+        run: |
+          npm test
+      
       - name: Stop and remove temporary PostgreSQL database
         if: always()
         run: |
           docker stop temp-postgres
           docker rm temp-postgres
-
-      - name: Run frontend tests
-        working-directory: ./frontend
-        run: |
-          npm test

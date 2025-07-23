@@ -313,7 +313,7 @@ function SearchInput({ onSearch, placeholder }) {
 
 ### Environment Variables
 
-The application uses environment variables for configuration (but NOT anything with sensitive info - just things like the API base URL - see public/config.json):
+The application uses environment variables for configuration (but NOT anything with sensitive info - just things like the API base URL - see [public/config.json](/frontend/public/config.json)):
 
 #### **Frontend Environment Variables**
 - `REACT_APP_API_BASE_URL` - Backend API URL

@@ -25,8 +25,9 @@ NOTE: 'working branch' is a general term that covers features, tasks, fixes, etc
    git checkout dev
    git pull origin dev
    git checkout -b branch-name
+   git push branch-name
    ```
-NOTE: branch names should use a consistent pattern, though I haven't yet decided what that is. Some options:
+*NOTE*: branch names should use a consistent pattern, though I haven't yet decided what that is. Some options:
 - the primary name should be clearly descriptive towards the outcome / change that this branch delivers
 - work identifier prefixes - if using Jira this would be the issue key, or simimilar for other project managment tooling; I'm not yet using such tooling for this project (for now still just a dynamic todo.txt), but if/when I do then this is critical (checks would be built into commit hooks)
 - feature/, task/, and fix/ prefixes - I'm not yet sure the distinction is useful
@@ -56,59 +57,9 @@ NOTE: branch names should use a consistent pattern, though I haven't yet decided
    - When ready for production, create PR from `dev` → `main`
    - Production deployment triggers on merge to `main`
 
-# Local Development Setup
+## Local Development Environment
 
-## Prerequisites
-- nvm - for managing node installations
-- node - for running tools and code
-- npm - for testing, builds, etc.
-- docker & docker-compose - for running everything locally
-- aws cli - for debugging/inspection, dev session scripts, and manual deployments
-- terraform - to manage infrastructure (requires AWS provider version 5.44.0+)
-- openssl - to create local cert for the DB
-- DBeaver - for database interactions
-
-## Initial Setup
-
-1. **Clone repository**
-   ```powershell
-   git clone https://github.com/cwarren/choregarden.git
-   cd choregarden
-   cp sample.env .env
-   # Edit .env with your local configuration
-   ```
-
-2. **Setup backend**
-   ```powershell
-   cd backend
-   cp sample.env .env
-   # Edit .env with your local configuration
-   npm install
-   ```
-
-3. **Setup frontend**
-   ```powershell
-   cd ../frontend
-   npm install
-   ```
-
-4. **Configure utilities**
-- create and place cert for the DB
-- create connection in DBeaver
-- set AWS credentials and profile
-
-4. **Setup local services**
-   ```powershell
-   # From project root
-   docker-compose build
-   docker-compose up
-   ```
-
-5. **Run local migrations**
-   ```powershell
-   # Use migration script
-   .\scripts\run-migrations-local.ps1
-   ```
+see [setup_dev_environment.md](setup_dev_environment.md) if you're just starting.
 
 ## Daily Development
 
@@ -134,6 +85,7 @@ This spins up all the AWS resources needed.
    docker-compose build
    docker-compose up
    ```
+The build command is only really needed if things have changed since you last ran the app locally.
 
 if needed, start frontend (in separate terminal) - this is useful when doing pure front-end work
    ```powershell
@@ -179,6 +131,12 @@ npm test
 ## Database Migrations
 - Automated via ops-lambda during deployment
 - Manual local migration scripts available in `scripts/`
+
+## Manual Deployment
+
+Typically deployments happen via the CI/CD Pipeline, but sometimes you need to do manual deployments (e.g. to test things out when working on that pipeline, or to debug the pipeline). Also, the manual process illustrates that the pipelines are doing automaticallys.
+
+TODO: add deployment steps here
 
 # Troubleshooting
 

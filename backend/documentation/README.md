@@ -165,7 +165,7 @@ Authorization: Bearer <jwt-token>
 
 ### Endpoints
 
-For complete endpoint documentation including request/response schemas, authentication requirements, and examples, see the `openapi.yaml` file in the backend root directory.
+For complete endpoint documentation including request/response schemas, authentication requirements, and examples, see the [openapi.yaml](/backend/openapi.yaml) file in the backend root directory.
 
 ### CORS Support
 
