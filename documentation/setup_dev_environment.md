@@ -20,6 +20,14 @@ This document provides a comprehensive guide for setting up your local developme
 - ideally, Copilot enabled for your account
 - access to the repo for your project (the existing choregarden project, or a clone)
 - branch protection in place for main and dev branches
+- set up github secrets (needed for ci-cd pipelines)
+- - POSTGRES_USER
+- - POSTGRES_PASSWORD
+- - POSTGRES_DB
+- - DEV_AWS_ACCESS_KEY
+- - DEV_AWS_SECRET_ACCESS_KEY
+- - PROD_AWS_ACCESS_KEY
+- - PROD_AWS_SECRET_ACCESS_KEY
 
 ### Feature Flagging  / Segmentation (TBD)
 
