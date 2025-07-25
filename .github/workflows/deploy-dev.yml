@@ -6,6 +6,7 @@ on:
     branches: [dev]
     types:
       - completed
+  workflow_dispatch:  # for manual testing
 
 jobs:
   deploy-frontend-dev:
