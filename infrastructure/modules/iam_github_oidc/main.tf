@@ -334,12 +334,11 @@ resource "aws_iam_policy" "terraform_operations" {
           "tag:TagResources", 
           "tag:UntagResources"
         ]
-        Resource = "*"
-        Condition = {
-          StringLike = {
-            "aws:ResourceTag/project" = "choregarden"
-          }
-        }
+        Resource = flatten([
+          [for bucket in var.s3_buckets : "arn:aws:s3:::${bucket}"],
+          [for bucket in var.s3_buckets : "arn:aws:s3:::${bucket}/*"],
+          [for dist in var.cloudfront_distributions : "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/${dist}"]
+        ])
       }
     ]
   })
