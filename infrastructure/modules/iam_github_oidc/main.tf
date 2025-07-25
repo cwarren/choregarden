@@ -148,21 +148,9 @@ resource "aws_iam_policy" "ecs_deployment" {
         ]
         Resource = flatten([
           [for cluster in var.ecs_clusters : "arn:aws:ecs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:cluster/${cluster}"],
-          [for service in var.ecs_services : "arn:aws:ecs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:service/*/*"],
+          [for cluster in var.ecs_clusters : [for service in var.ecs_services : "arn:aws:ecs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:service/${cluster}/${service}"]],
           ["arn:aws:ecs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:task-definition/*:*"]
         ])
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "iam:PassRole"
-        ]
-        Resource = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/*"
-        Condition = {
-          StringLike = {
-            "iam:PassedToService" = "ecs-tasks.amazonaws.com"
-          }
-        }
       }
     ]
   })
@@ -190,6 +178,35 @@ resource "aws_iam_policy" "lambda_deployment" {
           for func in var.lambda_functions :
           "arn:aws:lambda:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:function:${func}"
         ]
+      }
+    ]
+  })
+}
+
+# IAM PassRole permissions for ECS (restricted to specific roles)
+resource "aws_iam_policy" "ecs_pass_role" {
+  count = length(var.ecs_task_execution_roles) > 0 || length(var.ecs_task_roles) > 0 ? 1 : 0
+  
+  name        = "${var.role_name_prefix}-ecs-pass-role-${var.environment}"
+  description = "IAM PassRole permissions for ECS tasks"
+  
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "iam:PassRole"
+        ]
+        Resource = flatten([
+          [for role in var.ecs_task_execution_roles : "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${role}"],
+          [for role in var.ecs_task_roles : "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${role}"]
+        ])
+        Condition = {
+          StringEquals = {
+            "iam:PassedToService" = "ecs-tasks.amazonaws.com"
+          }
+        }
       }
     ]
   })
@@ -277,7 +294,7 @@ resource "aws_iam_policy" "terraform_operations" {
       {
         Effect = "Allow"
         Action = [
-          # S3 object management for config files
+          # S3 object management for config files (restricted to deployment buckets)
           "s3:PutObjectAcl",
           "s3:GetObjectVersion",
           "s3:GetBucketAcl",
@@ -286,20 +303,43 @@ resource "aws_iam_policy" "terraform_operations" {
           "s3:GetBucketVersioning",
           "s3:PutBucketVersioning",
           "s3:GetBucketLogging",
-          "s3:PutBucketLogging",
-          # CloudFront for distribution management
+          "s3:PutBucketLogging"
+        ]
+        Resource = flatten([
+          [for bucket in var.s3_buckets : "arn:aws:s3:::${bucket}"],
+          [for bucket in var.s3_buckets : "arn:aws:s3:::${bucket}/*"]
+        ])
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          # CloudFront for distribution management (restricted to specified distributions)
           "cloudfront:GetDistribution",
           "cloudfront:GetDistributionConfig",
           "cloudfront:UpdateDistribution",
           "cloudfront:TagResource",
           "cloudfront:UntagResource",
-          "cloudfront:ListTagsForResource",
-          # Basic resource tagging and descriptions
+          "cloudfront:ListTagsForResource"
+        ]
+        Resource = [
+          for dist in var.cloudfront_distributions :
+          "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/${dist}"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          # Basic resource tagging (restricted to deployment-related resources)
           "tag:GetResources",
-          "tag:TagResources",
+          "tag:TagResources", 
           "tag:UntagResources"
         ]
         Resource = "*"
+        Condition = {
+          StringLike = {
+            "aws:ResourceTag/project" = "choregarden"
+          }
+        }
       }
     ]
   })
@@ -322,6 +362,12 @@ resource "aws_iam_role_policy_attachment" "ecs_deployment" {
   count      = length(var.ecs_clusters) > 0 || length(var.ecs_services) > 0 ? 1 : 0
   role       = aws_iam_role.github_actions.name
   policy_arn = aws_iam_policy.ecs_deployment[0].arn
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_pass_role" {
+  count      = length(var.ecs_task_execution_roles) > 0 || length(var.ecs_task_roles) > 0 ? 1 : 0
+  role       = aws_iam_role.github_actions.name
+  policy_arn = aws_iam_policy.ecs_pass_role[0].arn
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_deployment" {

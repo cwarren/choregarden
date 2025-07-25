@@ -49,6 +49,18 @@ variable "ecs_services" {
   default     = []
 }
 
+variable "ecs_task_execution_roles" {
+  description = "List of ECS task execution role names that GitHub Actions can pass to ECS"
+  type        = list(string)
+  default     = []
+}
+
+variable "ecs_task_roles" {
+  description = "List of ECS task role names that GitHub Actions can pass to ECS"
+  type        = list(string)
+  default     = []
+}
+
 variable "rds_instances" {
   description = "List of RDS instance identifiers that the role should have access to"
   type        = list(string)

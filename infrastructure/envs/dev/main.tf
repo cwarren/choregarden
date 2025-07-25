@@ -127,6 +127,11 @@ module "github_oidc" {
   cloudfront_distributions = [module.frontend_static_site.cloudfront_distribution_id]
   terraform_state_bucket = "choregarden-terraform-state-dev"
   terraform_state_key_prefix = "envs/dev/"
+  # ECS configuration (empty for now, will be populated when ECS is implemented)
+  ecs_clusters = []
+  ecs_services = []
+  ecs_task_execution_roles = []
+  ecs_task_roles = []
 }
 
 module "cognito" {
