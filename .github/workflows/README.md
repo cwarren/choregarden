@@ -104,7 +104,7 @@ The workflows use GitHub OIDC for secure, temporary authentication with AWS:
 
 **Setup Requirements:**
 1. Deploy the `iam_github_oidc` Terraform module (included in dev environment)
-2. Set the `AWS_ACCOUNT_ID` repository variable
+2. Set the `AWS_ACCOUNT_ID_DEV` and `AWS_ACCOUNT_ID_PROD` repository variables
 3. Ensure your repository and branch names match the OIDC trust policy
 
 For detailed setup instructions, see: `infrastructure/modules/iam_github_oidc/README.md`

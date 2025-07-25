@@ -24,10 +24,8 @@ This document provides a comprehensive guide for setting up your local developme
 - - POSTGRES_USER
 - - POSTGRES_PASSWORD
 - - POSTGRES_DB
-- - DEV_AWS_ACCESS_KEY
-- - DEV_AWS_SECRET_ACCESS_KEY
-- - PROD_AWS_ACCESS_KEY
-- - PROD_AWS_SECRET_ACCESS_KEY
+- - `AWS_ACCOUNT_ID_DEV` - foo-dev (e.g. choregarden-dev) AWS account ID (12 digits, used for dev deployments)
+- - `AWS_ACCOUNT_ID_PROD` - foo-prod AWS account ID (12 digits, used for prod deployments)
 
 ### Feature Flagging  / Segmentation (TBD)
 
@@ -126,6 +124,10 @@ see [/database/certs/README.md](/database/certs/README.md)
 This is a bit different than the local connection because you have to set up a SSH tunnel through a bastion. Also, this requires a successful dev deployment first, and that the deployed database is running, and that the dev bastion is running.
 
 TODO: fill in steps here
+
+#### terraform
+
+Search for instances of 'choregarden' and 'cwarren' and replace them with whatever project name and github organization id (i.e. account) you're using
 
 ## Initial Setup
 
