@@ -24,6 +24,8 @@ resource "aws_security_group_rule" "allow_backend_http" {
 }
 
 resource "aws_security_group_rule" "allow_bastion_https" {
+  count = var.bastion_security_group_id != null ? 1 : 0
+  
   type                     = "ingress"
   from_port                = 443
   to_port                  = 443

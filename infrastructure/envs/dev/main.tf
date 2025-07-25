@@ -64,7 +64,7 @@ module "app_backend" {
   image_uri    = "966559697526.dkr.ecr.us-east-1.amazonaws.com/choregarden-backend:latest"
   private_subnets = module.vpc.private_subnets
   vpc_id         = module.vpc.vpc_id
-  bastion_security_group_id = module.bastion.security_group_id
+  bastion_security_group_id = var.create_bastion ? module.bastion[0].security_group_id : null
 }
 
 module "db_secret" {
@@ -84,11 +84,13 @@ module "db" {
   vpc_id                = module.vpc.vpc_id
   private_subnet_ids    = module.vpc.private_subnets
   ecs_security_group_id = module.app_backend.security_group_id
-  bastion_security_group_id = module.bastion.security_group_id
+  bastion_security_group_id = var.create_bastion ? module.bastion[0].security_group_id : null
   environment           = "dev"
 }
 
 module "bastion" {
+  count = var.create_bastion ? 1 : 0
+  
   source            = "../../modules/bastion"
   vpc_id            = module.vpc.vpc_id
   public_subnet_id  = module.vpc.public_subnets[0]
@@ -337,7 +339,7 @@ resource "aws_lambda_function" "migration_lambda" {
 
 output "bastion_public_ip" {
   description = "Public IP of the Bastion host for SSH access"
-  value       = module.bastion.public_ip
+  value       = var.create_bastion ? module.bastion[0].public_ip : "No bastion created"
 }
 
 output "http_api_url" {
