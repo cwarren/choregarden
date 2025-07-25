@@ -64,6 +64,7 @@ jobs:
           AWS_DEFAULT_REGION: us-east-1
           TF_VAR_create_bastion: "false"
           TF_VAR_create_nat_gateway: "false"
+          TF_VAR_aws_profile: ""  # Override profile for CI/OIDC authentication
         run: |
           terraform init
           terraform apply -replace="module.frontend_static_site.aws_s3_object.frontend_config" -auto-approve

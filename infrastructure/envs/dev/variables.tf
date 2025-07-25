@@ -5,7 +5,7 @@ variable "aws_region" {
 
 variable "aws_profile" {
   type    = string
-  default = "choregarden-dev"
+  default = "choregarden-dev"  # Default for local development, override for CI/OIDC
 }
 
 variable "create_nat_gateway" {
