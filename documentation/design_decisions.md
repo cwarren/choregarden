@@ -70,7 +70,7 @@ Use AWS Cognito for authentication combined with a separate application user dat
 
 ## Cloud Services Provider: AWS
 
-see `/infrastructure/documentation/design_decisions/`
+see [/infrastructure/documentation/design_decisions](/infrastructure/documentation/design_decisions.md)
 
 ## Tech Stack: Node.js + React + PostgreSQL
 
@@ -138,7 +138,7 @@ Single repository with multiple section and folders.
 
 ## Infrastructure as Code: Terraform
 
-see `/infrastructure/documentation/design_decisions/`
+see [/infrastructure/documentation/design_decisions](/infrastructure/documentation/design_decisions.md)
 
 
 ## Cost Optimization Strategy

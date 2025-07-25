@@ -7,10 +7,12 @@ PostgreSQL database for Chore Garden with Flyway-managed migrations.
 The database uses PostgreSQL with Flyway for version-controlled migrations.
 
 ### Local Development
-Database runs in Docker via docker-compose. See `/scripts/` for database management commands.
+Database runs in Docker via docker-compose.
 
 ### Migrations
 SQL migration files are in `migrations/`. Flyway handles versioning and execution.
+
+Local migrations can be run using `/scripts/run-migrations-local.ps1`
 
 ## Documentation
 

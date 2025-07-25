@@ -92,7 +92,7 @@ Chore Garden follows a modern three-tier architecture deployed on AWS with Infra
 
 ### Database
 - AWS RDS, PostgreSQL
-see the /database documentation for details on schema et al
+see the [/database/documentation/](/database/documentation/README.md) for details on schema et al
 
 ## Scalability Considerations
 

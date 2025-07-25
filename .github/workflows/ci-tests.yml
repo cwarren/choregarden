@@ -1,23 +1,26 @@
-name: Minimal CI/CD
+name: CI - Tests
 
 on:
   push:
     branches:
+      - dev
       - main
   pull_request:
     branches:
+      - dev
       - main
+  workflow_dispatch:
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
@@ -45,13 +48,13 @@ jobs:
         run: |
           npm test
 
+      - name: Run frontend tests
+        working-directory: ./frontend
+        run: |
+          npm test
+      
       - name: Stop and remove temporary PostgreSQL database
         if: always()
         run: |
           docker stop temp-postgres
           docker rm temp-postgres
-
-      - name: Run frontend tests
-        working-directory: ./frontend
-        run: |
-          npm test

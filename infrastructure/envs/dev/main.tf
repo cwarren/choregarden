@@ -14,6 +14,9 @@ provider "aws" {
   profile = var.aws_profile
 }
 
+data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}
+
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
   version = "~> 5.0"
@@ -113,6 +116,25 @@ module "frontend_static_site" {
   api_base_url = module.api_gateway.http_api_url
   cognito_domain = module.cognito.domain
   cognito_client_id = module.cognito.user_pool_client_id
+}
+
+module "github_oidc" {
+  source              = "../../modules/iam_github_oidc"
+  github_org          = "cwarren"
+  github_repository   = "choregarden"
+  environment         = "dev"
+  role_name_prefix    = "github-actions"
+  allowed_branches    = ["dev", "main"]
+  s3_buckets          = [module.frontend_static_site.s3_bucket_name]
+  ecr_repositories    = [module.ecr_backend.repository_name]
+  cloudfront_distributions = [module.frontend_static_site.cloudfront_distribution_id]
+  terraform_state_bucket = "choregarden-terraform-state-dev"
+  terraform_state_key_prefix = "envs/dev/"
+  # ECS configuration (empty for now, will be populated when ECS is implemented)
+  ecs_clusters = []
+  ecs_services = []
+  ecs_task_execution_roles = []
+  ecs_task_roles = []
 }
 
 module "cognito" {
@@ -254,7 +276,10 @@ resource "aws_iam_role_policy" "migration_lambda_policy" {
       {
         Effect = "Allow"
         Action = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
-        Resource = "arn:aws:logs:*:*:*"
+        Resource = [
+          "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/migration-lambda*",
+          "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/migration-lambda*:*"
+        ]
       },
       {
         Effect = "Allow"
@@ -322,4 +347,14 @@ output "http_api_url" {
 output "frontend_s3_bucket_name" {
   description = "S3 bucket name for the frontend static site"
   value       = module.frontend_static_site.s3_bucket_name
+}
+
+output "github_actions_role_arn" {
+  description = "ARN of the GitHub Actions IAM role"
+  value       = module.github_oidc.deployment_role_arn
+}
+
+output "github_oidc_provider_arn" {
+  description = "ARN of the GitHub OIDC identity provider"
+  value       = module.github_oidc.oidc_provider_arn
 }

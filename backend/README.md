@@ -4,7 +4,7 @@ Node.js/Express API server for Chore Garden.
 
 ## API Documentation
 
-See `openapi.yaml` for complete API specification.
+See [openapi.yaml](/backend/openapi.yaml) for complete API specification.
 
 View with Swagger UI:
 ```powershell

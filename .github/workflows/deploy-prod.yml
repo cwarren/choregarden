@@ -1,0 +1,32 @@
+name: Deploy - Production
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-frontend-prod:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Placeholder - Frontend Production Deployment
+        run: |
+          echo "Frontend production deployment would run here"
+          echo "Target: Production environment"
+
+  deploy-backend-prod:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Placeholder - Backend Production Deployment
+        run: |
+          echo "Backend production deployment would run here"
+          echo "Target: Production environment"
+
+  deploy-db-prod:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Placeholder - Database Production Deployment
+        run: |
+          echo "Database production deployment (migrations) would run here"
+          echo "Target: Production environment"

@@ -1,0 +1,90 @@
+name: Deploy - Development
+
+on:
+  workflow_run:
+    workflows: ["CI - Tests"]
+    branches: [dev]
+    types:
+      - completed
+  workflow_dispatch:  # for manual testing
+
+jobs:
+  deploy-frontend-dev:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
+    
+    permissions:
+      id-token: write   # This is required for requesting the JWT
+      contents: read    # This is required for actions/checkout
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID_DEV }}:role/github-actions-dev
+          role-session-name: github-actions-dev-deployment
+          aws-region: us-east-1
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: |
+          npm install
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: |
+          npm run build
+
+      - name: Deploy frontend to S3
+        working-directory: ./frontend
+        run: |
+          aws s3 sync ./build s3://choregarden-frontend-dev --delete
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.11.4
+
+      - name: Update frontend config
+        working-directory: ./infrastructure/envs/dev
+        env:
+          AWS_DEFAULT_REGION: us-east-1
+        run: |
+          terraform init
+          terraform apply -replace="module.frontend_static_site.aws_s3_object.frontend_config" -auto-approve
+
+  deploy-backend-dev:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
+    
+    permissions:
+      id-token: write   # This is required for requesting the JWT
+      contents: read    # This is required for actions/checkout
+    
+    steps:
+      - name: Placeholder - Backend Dev Deployment
+        run: |
+          echo "Backend dev deployment would run here"
+          echo "Target: Dev environment"
+
+  deploy-db-dev:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
+    
+    permissions:
+      id-token: write   # This is required for requesting the JWT
+      contents: read    # This is required for actions/checkout
+    
+    steps:
+      - name: Placeholder - Database Dev Deployment
+        run: |
+          echo "Database dev deployment (migrations) would run here"
+          echo "Target: Dev environment"
