@@ -34,7 +34,10 @@ resource "aws_iam_policy" "ecs_task_secrets_policy" {
           "logs:CreateLogStream",
           "logs:PutLogEvents"
         ],
-        Resource = "*"
+        Resource = [
+          "arn:aws:logs:*:*:log-group:/ecs/${var.name}*",
+          "arn:aws:logs:*:*:log-group:/ecs/${var.name}*:*"
+        ]
       },
       {
         Effect = "Allow",
