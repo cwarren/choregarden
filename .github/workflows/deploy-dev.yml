@@ -26,6 +26,11 @@ jobs:
         with:
           node-version: 20
 
+      - name: Debug AWS Account ID
+        run: |
+          echo "AWS Account ID: ${{ vars.AWS_ACCOUNT_ID_DEV }}"
+          echo "Expected ARN: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID_DEV }}:role/github-actions-dev"
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
