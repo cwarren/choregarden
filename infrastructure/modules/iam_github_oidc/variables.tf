@@ -85,6 +85,12 @@ variable "terraform_state_key_prefix" {
   default     = ""
 }
 
+variable "terraform_dynamodb_table" {
+  description = "DynamoDB table name for Terraform state locking"
+  type        = string
+  default     = ""
+}
+
 variable "cloudfront_distributions" {
   description = "List of CloudFront distribution IDs that the role should have access to"
   type        = list(string)
