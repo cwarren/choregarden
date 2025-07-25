@@ -70,6 +70,16 @@ gh workflow run "Deploy - Production" --ref main
 - Note: Tests are not automatically run as part of production deployment
 - Ensure recent tests have passed before triggering production deployment
 
+## Infrastructure
+
+For now infrastructure updates are NOT handled via the ci/cd pipeline. That may change in the future, but for now it has too much potential to create / spin up something expensive. Infrastructure changes are handled through manually run `terraform apply` from the local machine.
+
+### future options for infrastructure
+
+- maybe create an infrastructure-specific pipeline (at least for production)
+- maybe bake it into the production pipelines
+- look into git ops; others have certainly faced this challenge before and found acceptable solutions
+
 ## Jobs Overview
 
 ### CI Tests (`ci-tests.yml`)
