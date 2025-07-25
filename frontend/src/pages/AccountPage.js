@@ -6,7 +6,7 @@ import HeaderNavBar from '../components/HeaderNavBar';
 
 function AccountPage({ config }) {
   const { user, authenticated, loading } = useAuth();
-  const { userProfile, profileLoading, profileError, updateUserProfile, refreshUserProfile } = useUser();
+  const { userProfile, profileLoading, profileError, updateUserProfile } = useUser();
   
   // State for editing display name
   const [displayName, setDisplayName] = useState('');

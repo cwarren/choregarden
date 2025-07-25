@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { userService } from '../services';
 import { useAuth } from './AuthContext';
 
@@ -18,7 +18,7 @@ export const UserProvider = ({ children, config = {} }) => {
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState(null);
 
-  const fetchUserProfile = async (apiBaseUrl) => {
+  const fetchUserProfile = useCallback(async (apiBaseUrl) => {
     if (!authenticated) {
       setUserProfile(null);
       setProfileError(null);
@@ -38,7 +38,7 @@ export const UserProvider = ({ children, config = {} }) => {
     } finally {
       setProfileLoading(false);
     }
-  };
+  }, [authenticated]);
 
   const updateUserProfile = async (apiBaseUrl, updates) => {
     try {
@@ -61,7 +61,7 @@ export const UserProvider = ({ children, config = {} }) => {
       setProfileError(null);
       setProfileLoading(false);
     }
-  }, [authenticated, config.REACT_APP_API_BASE_URL]);
+  }, [authenticated, config.REACT_APP_API_BASE_URL, fetchUserProfile]);
 
   const value = {
     userProfile,
