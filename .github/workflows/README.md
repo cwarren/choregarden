@@ -91,22 +91,43 @@ gh workflow run "Deploy - Production" --ref main
 | `deploy-backend-prod` | Deploy backend to prod ECS | 🚧 **Placeholder** |
 | `deploy-db-prod` | Run database migrations on prod | 🚧 **Placeholder** |
 
-#### Required Secrets
+#### Authentication
 
-The workflows require these secrets to be configured in repository settings:
+**GitHub OIDC (OpenID Connect)**
+
+The workflows use GitHub OIDC for secure, temporary authentication with AWS:
+
+- **No long-lived credentials**: Temporary tokens are issued for each workflow run
+- **Branch restrictions**: Only specified branches can assume the deployment roles
+- **Fine-grained permissions**: Each environment has its own IAM role with minimal required permissions
+- **Audit trail**: All authentication attempts are logged in AWS CloudTrail
+
+**Setup Requirements:**
+1. Deploy the `iam_github_oidc` Terraform module (included in dev environment)
+2. Set the `AWS_ACCOUNT_ID` repository variable
+3. Ensure your repository and branch names match the OIDC trust policy
+
+For detailed setup instructions, see: `infrastructure/modules/iam_github_oidc/README.md`
+
+#### Required Secrets and Variables
+
+The workflows require these secrets and variables to be configured in repository settings:
+
+**Repository Variables (Settings → Secrets and variables → Actions → Variables):**
+- `AWS_ACCOUNT_ID_DEV` - Your choregarden-dev AWS account ID (12 digits, used for dev deployments)
+- `AWS_ACCOUNT_ID_PROD` - Your choregarden-prod AWS account ID (12 digits, used for prod deployments)
 
 **Testing (`ci-tests.yml`):**
-- `POSTGRES_USER` - Test database username
-- `POSTGRES_PASSWORD` - Test database password  
-- `POSTGRES_DB` - Test database name
+- `POSTGRES_USER` - Test database username (secret)
+- `POSTGRES_PASSWORD` - Test database password (secret)
+- `POSTGRES_DB` - Test database name (secret)
 
 **Development Deployments (`deploy-dev.yml`):**
-- `DEV_AWS_ACCESS_KEY_ID` - AWS access key for dev environment
-- `DEV_AWS_SECRET_ACCESS_KEY` - AWS secret key for dev environment
+- Uses GitHub OIDC to assume IAM role: `github-actions-dev`
+- No long-lived AWS credentials required
 
 **Production Deployments (`deploy-prod.yml`):** (TBD)
-- `PROD_AWS_ACCESS_KEY_ID` - AWS access key for prod environment (when implemented)
-- `PROD_AWS_SECRET_ACCESS_KEY` - AWS secret key for prod environment (when implemented)
+- Production OIDC role will be: `github-actions-prod` (when implemented)
 
 #### Workflow Dependencies
 
@@ -158,6 +179,7 @@ The workflows require these secrets to be configured in repository settings:
 - **Safe**: Production deployments are completely separate and manual-only
 - **Maintainable**: Test logic is defined once, not duplicated
 - **Scalable**: Easy to add new environments (staging, UAT, etc.)
+- **Secure**: Uses GitHub OIDC for AWS authentication (no long-lived credentials)
 
 #### Future Enhancements
 

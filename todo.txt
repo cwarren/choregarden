@@ -3,10 +3,11 @@ latest done:
 * create dev branch
 * set up branch protection in github (allow self-review, since solo, but add notes about it to README)
 * shift workflow to branches and merges rather than direct commits 
-
-in progress:
 * add docs for dev environment set up
 * fix some internal docs linking
+
+in progress:
+* setting up github OIDC for my deployments
 * deploy FE via ci-cd (to dev environment)
 
 next steps:
