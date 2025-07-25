@@ -17,15 +17,6 @@ function HeaderNavBar({ config = {} }) {
     }
   };
 
-  const handleLogout = () => {
-    const { COGNITO_DOMAIN, COGNITO_CLIENT_ID } = config;
-    if (COGNITO_DOMAIN && COGNITO_CLIENT_ID) {
-      authService.logout(COGNITO_DOMAIN, COGNITO_CLIENT_ID);
-    } else {
-      console.error('Cognito configuration not available');
-    }
-  };
-
   if (loading) {
     return (
       <header className="w-full flex items-center justify-between px-6 py-4" style={{ backgroundColor: '#baf595' }}>
