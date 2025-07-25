@@ -1,19 +1,16 @@
 latest done:
 * setting up github OIDC for my deployments
+* deploy FE via ci-cd (to dev environment)
 
 in progress:
-* debugging dev deploy workflow
-"Annotations
-1 error
-deploy-frontend-dev
-Could not assume role with OIDC: Request ARN is invalid"
-* * added a bit of debugging output, but haven't yet tried it - need to commit the change, make and merge the PR, then see what happens
-* deploy FE via ci-cd (to dev environment)
+* make FE deploy trigger only when there are changes in the /frontend folder tree
+* deploy BE via ci-cd (to dev environment)
 
 next steps:
 * iron out CI/CD for deployments & Terraform
 * * deploy BE via ci-cd (to dev environment)
 * * DB change deployment and migration via CI-CD (to dev environment)
+* * op lambdas deployments
 
 longer term:
 * add documentation for manual deployments (FE, BE, DB, infra, ops lambdas)
