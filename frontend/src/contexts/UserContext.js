@@ -61,7 +61,7 @@ export const UserProvider = ({ children, config = {} }) => {
       setProfileError(null);
       setProfileLoading(false);
     }
-  }, [authenticated, config.REACT_APP_API_BASE_URL]);
+  }, [authenticated, config.REACT_APP_API_BASE_URL, fetchUserProfile]);
 
   const value = {
     userProfile,
