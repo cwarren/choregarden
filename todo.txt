@@ -1,13 +1,13 @@
 latest done:
-* extract implementation specifics from design decisions and other documents
-* create dev branch
-* set up branch protection in github (allow self-review, since solo, but add notes about it to README)
-* shift workflow to branches and merges rather than direct commits 
-* add docs for dev environment set up
-* fix some internal docs linking
+* setting up github OIDC for my deployments
 
 in progress:
-* setting up github OIDC for my deployments
+* debugging dev deploy workflow
+"Annotations
+1 error
+deploy-frontend-dev
+Could not assume role with OIDC: Request ARN is invalid"
+* * added a bit of debugging output, but haven't yet tried it - need to commit the change, make and merge the PR, then see what happens
 * deploy FE via ci-cd (to dev environment)
 
 next steps:

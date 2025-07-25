@@ -31,7 +31,7 @@ terraform output github_actions_role_arn
 
 ### Repository Variables
 
-Set up the following repository variables in GitHub:
+Set up the following repository **variables** (not secrets) in GitHub:
 - Go to your repository → Settings → Secrets and variables → Actions → Variables tab
 - Add these variables:
 
