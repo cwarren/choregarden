@@ -282,11 +282,12 @@ resource "aws_iam_policy" "terraform_state" {
 }
 
 # Additional Terraform permissions for managing AWS resources
+# Terraform operations permissions (for infrastructure management)
 resource "aws_iam_policy" "terraform_operations" {
   count = var.terraform_state_bucket != "" ? 1 : 0
   
   name        = "${var.role_name_prefix}-terraform-ops-${var.environment}"
-  description = "Additional permissions for Terraform operations"
+  description = "Extended permissions for Terraform operations"
   
   policy = jsonencode({
     Version = "2012-10-17"
@@ -294,51 +295,37 @@ resource "aws_iam_policy" "terraform_operations" {
       {
         Effect = "Allow"
         Action = [
-          # S3 object management for config files (restricted to deployment buckets)
-          "s3:PutObjectAcl",
-          "s3:GetObjectVersion",
-          "s3:GetBucketAcl",
-          "s3:GetBucketPolicy",
-          "s3:PutBucketPolicy",
-          "s3:GetBucketVersioning",
-          "s3:PutBucketVersioning",
-          "s3:GetBucketLogging",
-          "s3:PutBucketLogging"
+          "iam:ListRoles",
+          "iam:ListPolicies",
+          "iam:ListAttachedRolePolicies",
+          "iam:GetRole",
+          "iam:GetPolicy",
+          "iam:GetPolicyVersion",
+          "iam:PassRole"
         ]
-        Resource = flatten([
-          [for bucket in var.s3_buckets : "arn:aws:s3:::${bucket}"],
-          [for bucket in var.s3_buckets : "arn:aws:s3:::${bucket}/*"]
-        ])
-      },
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# Frontend config deployment permissions (for reading API Gateway and Cognito details)
+resource "aws_iam_policy" "frontend_config" {
+  name        = "${var.role_name_prefix}-frontend-config-${var.environment}"
+  description = "Permissions for frontend config deployment"
+  
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
       {
         Effect = "Allow"
         Action = [
-          # CloudFront for distribution management (restricted to specified distributions)
-          "cloudfront:GetDistribution",
-          "cloudfront:GetDistributionConfig",
-          "cloudfront:UpdateDistribution",
-          "cloudfront:TagResource",
-          "cloudfront:UntagResource",
-          "cloudfront:ListTagsForResource"
+          "apigateway:GET",
+          "cognito-idp:ListUserPools",
+          "cognito-idp:DescribeUserPool",
+          "cognito-idp:ListUserPoolClients"
         ]
-        Resource = [
-          for dist in var.cloudfront_distributions :
-          "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/${dist}"
-        ]
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          # Basic resource tagging (restricted to deployment-related resources)
-          "tag:GetResources",
-          "tag:TagResources", 
-          "tag:UntagResources"
-        ]
-        Resource = flatten([
-          [for bucket in var.s3_buckets : "arn:aws:s3:::${bucket}"],
-          [for bucket in var.s3_buckets : "arn:aws:s3:::${bucket}/*"],
-          [for dist in var.cloudfront_distributions : "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/${dist}"]
-        ])
+        Resource = "*"
       }
     ]
   })
@@ -391,4 +378,9 @@ resource "aws_iam_role_policy_attachment" "terraform_operations" {
   count      = var.terraform_state_bucket != "" ? 1 : 0
   role       = aws_iam_role.github_actions.name
   policy_arn = aws_iam_policy.terraform_operations[0].arn
+}
+
+resource "aws_iam_role_policy_attachment" "frontend_config" {
+  role       = aws_iam_role.github_actions.name
+  policy_arn = aws_iam_policy.frontend_config.arn
 }
