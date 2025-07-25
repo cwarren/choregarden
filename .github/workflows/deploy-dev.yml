@@ -55,29 +55,36 @@ jobs:
 
       - name: Update frontend config
         run: |
-          # Get required values from AWS
-          API_URL=$(aws apigatewayv2 get-apis --query 'Items[?contains(Name, `choregarden-dev`)].ApiEndpoint' --output text)
+          # Get required values from AWS with debug output
+          echo "Fetching API Gateway information..."
+          API_URL=$(aws apigatewayv2 get-apis --query 'Items[?contains(Name, `choregarden-dev`)].ApiEndpoint' --output text 2>&1)
+          echo "API_URL result: $API_URL"
           
-          # Get Cognito User Pool ID and details
-          USER_POOL_ID=$(aws cognito-idp list-user-pools --max-results 50 --query 'UserPools[?contains(Name, `choregarden-dev`)].Id' --output text)
+          # If the name-based query fails, try getting the first API
+          if [ -z "$API_URL" ] || [ "$API_URL" = "None" ]; then
+            echo "Name-based query failed, trying to get first API..."
+            API_URL=$(aws apigatewayv2 get-apis --query 'Items[0].ApiEndpoint' --output text 2>&1)
+            echo "First API result: $API_URL"
+          fi
           
-          if [ -n "$USER_POOL_ID" ]; then
-            COGNITO_CLIENT_ID=$(aws cognito-idp list-user-pool-clients --user-pool-id "$USER_POOL_ID" --query 'UserPoolClients[0].ClientId' --output text)
+          echo "Fetching Cognito User Pool information..."
+          USER_POOL_ID=$(aws cognito-idp list-user-pools --max-results 50 --query 'UserPools[?contains(Name, `choregarden-dev`)].Id' --output text 2>&1)
+          echo "USER_POOL_ID result: $USER_POOL_ID"
+          
+          if [ -n "$USER_POOL_ID" ] && [ "$USER_POOL_ID" != "None" ]; then
+            echo "Fetching Cognito Client ID..."
+            COGNITO_CLIENT_ID=$(aws cognito-idp list-user-pool-clients --user-pool-id "$USER_POOL_ID" --query 'UserPoolClients[0].ClientId' --output text 2>&1)
+            echo "COGNITO_CLIENT_ID result: $COGNITO_CLIENT_ID"
             
-            # Try to get the domain from user pool domains
-            COGNITO_DOMAIN=$(aws cognito-idp list-user-pool-domains --query 'Domains[?contains(UserPoolId, `'$USER_POOL_ID'`)].Domain' --output text 2>/dev/null)
-            
-            # If no domain found, construct the expected domain name
-            if [ -z "$COGNITO_DOMAIN" ] || [ "$COGNITO_DOMAIN" = "None" ]; then
-              # Extract the random suffix from user pool ID and construct domain
-              POOL_SUFFIX=$(echo $USER_POOL_ID | cut -d'_' -f2 | tr '[:upper:]' '[:lower:]')
-              COGNITO_DOMAIN="choregarden-dev-${POOL_SUFFIX}.auth.us-east-1.amazoncognito.com"
-            else
-              # If it's a custom domain, use as-is, otherwise append auth URL
-              if [[ "$COGNITO_DOMAIN" != *".auth."* ]]; then
-                COGNITO_DOMAIN="${COGNITO_DOMAIN}.auth.us-east-1.amazoncognito.com"
-              fi
-            fi
+            echo "Checking for Cognito domain..."
+            # Simplified approach - just construct the domain from the user pool ID
+            POOL_SUFFIX=$(echo $USER_POOL_ID | cut -d'_' -f2 | tr '[:upper:]' '[:lower:]')
+            COGNITO_DOMAIN="choregarden-dev-${POOL_SUFFIX}.auth.us-east-1.amazoncognito.com"
+            echo "COGNITO_DOMAIN constructed: $COGNITO_DOMAIN"
+          else
+            echo "No Cognito User Pool found or invalid result"
+            COGNITO_CLIENT_ID=""
+            COGNITO_DOMAIN=""
           fi
           
           # Create config.json with flat structure
@@ -93,7 +100,9 @@ jobs:
           cat config.json
           
           # Upload to S3
+          echo "Uploading config.json to S3..."
           aws s3 cp config.json s3://choregarden-frontend-dev/config.json
+          echo "Frontend deployment completed successfully."
 
   deploy-backend-dev:
     runs-on: ubuntu-latest
