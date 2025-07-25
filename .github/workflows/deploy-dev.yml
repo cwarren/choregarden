@@ -59,20 +59,24 @@ jobs:
           API_URL=$(aws apigatewayv2 get-apis --query 'Items[?contains(Name, `choregarden-dev`)].ApiEndpoint' --output text)
           
           # Get Cognito User Pool ID and details
-          USER_POOL_ID=$(aws cognito-idp list-user-pools --max-items 50 --query 'UserPools[?contains(Name, `choregarden-dev`)].Id' --output text)
+          USER_POOL_ID=$(aws cognito-idp list-user-pools --max-results 50 --query 'UserPools[?contains(Name, `choregarden-dev`)].Id' --output text)
           
           if [ -n "$USER_POOL_ID" ]; then
             COGNITO_CLIENT_ID=$(aws cognito-idp list-user-pool-clients --user-pool-id "$USER_POOL_ID" --query 'UserPoolClients[0].ClientId' --output text)
             
-            # Get the custom domain if it exists
-            CUSTOM_DOMAIN=$(aws cognito-idp describe-user-pool --user-pool-id "$USER_POOL_ID" --query 'UserPool.CustomDomain' --output text 2>/dev/null || echo "None")
+            # Try to get the domain from user pool domains
+            COGNITO_DOMAIN=$(aws cognito-idp list-user-pool-domains --query 'Domains[?contains(UserPoolId, `'$USER_POOL_ID'`)].Domain' --output text 2>/dev/null)
             
-            if [ "$CUSTOM_DOMAIN" != "None" ] && [ -n "$CUSTOM_DOMAIN" ]; then
-              COGNITO_DOMAIN="$CUSTOM_DOMAIN"
+            # If no domain found, construct the expected domain name
+            if [ -z "$COGNITO_DOMAIN" ] || [ "$COGNITO_DOMAIN" = "None" ]; then
+              # Extract the random suffix from user pool ID and construct domain
+              POOL_SUFFIX=$(echo $USER_POOL_ID | cut -d'_' -f2 | tr '[:upper:]' '[:lower:]')
+              COGNITO_DOMAIN="choregarden-dev-${POOL_SUFFIX}.auth.us-east-1.amazoncognito.com"
             else
-              # Use the default Cognito domain format
-              DOMAIN_PREFIX=$(aws cognito-idp describe-user-pool-domain --domain-name "choregarden-dev-$(echo $USER_POOL_ID | cut -d'_' -f2 | tr '[:upper:]' '[:lower:]')" --query 'DomainDescription.Domain' --output text 2>/dev/null || echo "choregarden-dev-$(echo $USER_POOL_ID | cut -d'_' -f2 | tr '[:upper:]' '[:lower:]')")
-              COGNITO_DOMAIN="${DOMAIN_PREFIX}.auth.us-east-1.amazoncognito.com"
+              # If it's a custom domain, use as-is, otherwise append auth URL
+              if [[ "$COGNITO_DOMAIN" != *".auth."* ]]; then
+                COGNITO_DOMAIN="${COGNITO_DOMAIN}.auth.us-east-1.amazoncognito.com"
+              fi
             fi
           fi
           
