@@ -64,7 +64,7 @@ jobs:
           AWS_DEFAULT_REGION: us-east-1
         run: |
           terraform init
-          terraform apply -replace="module.frontend_static_site.aws_s3_object.frontend_config" -auto-approve
+          terraform apply -target="module.frontend_static_site.aws_s3_object.frontend_config" -replace="module.frontend_static_site.aws_s3_object.frontend_config" -auto-approve
 
   deploy-backend-dev:
     runs-on: ubuntu-latest

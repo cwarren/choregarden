@@ -128,8 +128,9 @@ module "github_oidc" {
   s3_buckets          = [module.frontend_static_site.s3_bucket_name]
   ecr_repositories    = [module.ecr_backend.repository_name]
   cloudfront_distributions = [module.frontend_static_site.cloudfront_distribution_id]
-  terraform_state_bucket = "choregarden-terraform-state-dev"
-  terraform_state_key_prefix = "envs/dev/"
+  terraform_state_bucket = "choregarden-dev-terraform-state"
+  terraform_state_key_prefix = "dev/"
+  terraform_dynamodb_table = "choregarden-dev-terraform-locks"
   # ECS configuration (empty for now, will be populated when ECS is implemented)
   ecs_clusters = []
   ecs_services = []
