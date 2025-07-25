@@ -53,24 +53,43 @@ jobs:
         run: |
           aws s3 sync ./build s3://choregarden-frontend-dev --delete
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.11.4
-
       - name: Update frontend config
-        working-directory: ./infrastructure/envs/dev
-        env:
-          AWS_DEFAULT_REGION: us-east-1
-          TF_VAR_create_bastion: "false"
-          TF_VAR_create_nat_gateway: "false"
-          TF_VAR_aws_profile: ""  # Override profile for CI/OIDC authentication
         run: |
-          terraform init
-          # Handle moved resources first
-          terraform state rm 'module.app_backend.aws_security_group_rule.allow_bastion_https' || true
-          # Now apply only the frontend config
-          terraform apply -target="module.frontend_static_site.aws_s3_object.frontend_config" -replace="module.frontend_static_site.aws_s3_object.frontend_config" -auto-approve
+          # Get required values from AWS
+          API_URL=$(aws apigatewayv2 get-apis --query 'Items[?contains(Name, `choregarden-dev`)].ApiEndpoint' --output text)
+          
+          # Get Cognito User Pool ID and details
+          USER_POOL_ID=$(aws cognito-idp list-user-pools --max-items 50 --query 'UserPools[?contains(Name, `choregarden-dev`)].Id' --output text)
+          
+          if [ -n "$USER_POOL_ID" ]; then
+            COGNITO_CLIENT_ID=$(aws cognito-idp list-user-pool-clients --user-pool-id "$USER_POOL_ID" --query 'UserPoolClients[0].ClientId' --output text)
+            
+            # Get the custom domain if it exists
+            CUSTOM_DOMAIN=$(aws cognito-idp describe-user-pool --user-pool-id "$USER_POOL_ID" --query 'UserPool.CustomDomain' --output text 2>/dev/null || echo "None")
+            
+            if [ "$CUSTOM_DOMAIN" != "None" ] && [ -n "$CUSTOM_DOMAIN" ]; then
+              COGNITO_DOMAIN="$CUSTOM_DOMAIN"
+            else
+              # Use the default Cognito domain format
+              DOMAIN_PREFIX=$(aws cognito-idp describe-user-pool-domain --domain-name "choregarden-dev-$(echo $USER_POOL_ID | cut -d'_' -f2 | tr '[:upper:]' '[:lower:]')" --query 'DomainDescription.Domain' --output text 2>/dev/null || echo "choregarden-dev-$(echo $USER_POOL_ID | cut -d'_' -f2 | tr '[:upper:]' '[:lower:]')")
+              COGNITO_DOMAIN="${DOMAIN_PREFIX}.auth.us-east-1.amazoncognito.com"
+            fi
+          fi
+          
+          # Create config.json with flat structure
+          cat > config.json << EOF
+          {
+            "REACT_APP_API_BASE_URL": "$API_URL",
+            "COGNITO_CLIENT_ID": "$COGNITO_CLIENT_ID",
+            "COGNITO_DOMAIN": "$COGNITO_DOMAIN"
+          }
+          EOF
+          
+          echo "Generated config.json:"
+          cat config.json
+          
+          # Upload to S3
+          aws s3 cp config.json s3://choregarden-frontend-dev/config.json
 
   deploy-backend-dev:
     runs-on: ubuntu-latest
