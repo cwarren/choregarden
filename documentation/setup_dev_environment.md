@@ -24,6 +24,7 @@ This document provides a comprehensive guide for setting up your local developme
 - - POSTGRES_USER
 - - POSTGRES_PASSWORD
 - - POSTGRES_DB
+- set up github **repository variables** (not secrets)
 - - `AWS_ACCOUNT_ID_DEV` - foo-dev (e.g. choregarden-dev) AWS account ID (12 digits, used for dev deployments)
 - - `AWS_ACCOUNT_ID_PROD` - foo-prod AWS account ID (12 digits, used for prod deployments)
 
