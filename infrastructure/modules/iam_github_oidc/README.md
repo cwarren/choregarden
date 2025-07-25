@@ -37,8 +37,8 @@ Set up the following repository variables in GitHub:
 
 | Variable Name | Value | Description |
 |---------------|-------|-------------|
-| `AWS_ACCOUNT_ID_DEV` | Your choregarden-dev AWS account ID (12 digits) | Used for development environment role ARNs |
-| `AWS_ACCOUNT_ID_PROD` | Your choregarden-prod AWS account ID (12 digits) | Used for production environment role ARNs |
+| `AWS_ACCOUNT_ID_DEV` | Your choregarden-dev AWS account ID (12-digit number) | Used for development environment role ARNs |
+| `AWS_ACCOUNT_ID_PROD` | Your choregarden-prod AWS account ID (12-digit number) | Used for production environment role ARNs |
 
 **Important:** Use the dedicated environment account IDs, not your main admin account:
 - **Dev environment**: Use the `choregarden-dev` AWS account ID
