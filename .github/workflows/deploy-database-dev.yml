@@ -1,14 +1,19 @@
 name: Deploy Database - Development
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI - Tests"]
+    types: [completed]
     branches: [dev]
-    paths: ['database/**']
   workflow_dispatch:  # for manual testing
 
 jobs:
   deploy-database-dev:
     runs-on: ubuntu-latest
+    # Only run if triggered by manual dispatch or successful test completion
+    if: >
+      github.event_name == 'workflow_dispatch' || 
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     
     permissions:
       id-token: write   # This is required for requesting the JWT
@@ -17,13 +22,45 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history for path checking
+
+      - name: Check for database changes
+        id: check-changes
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            # For workflow_run triggers, check if there are database changes in the last commit
+            echo "Checking for database changes in workflow_run trigger..."
+            
+            # Get the commit SHA from the triggering workflow
+            TRIGGER_SHA="${{ github.event.workflow_run.head_sha }}"
+            echo "Trigger SHA: $TRIGGER_SHA"
+            
+            # Check if there are changes in database/ directory
+            DATABASE_CHANGES=$(git diff --name-only $TRIGGER_SHA~1 $TRIGGER_SHA | grep -E '^database/' || true)
+            
+            if [ -n "$DATABASE_CHANGES" ]; then
+              echo "Database changes detected:"
+              echo "$DATABASE_CHANGES"
+              echo "should-deploy=true" >> $GITHUB_OUTPUT
+            else
+              echo "No database changes detected, skipping deployment"
+              echo "should-deploy=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            # For workflow_dispatch, always deploy
+            echo "Manual trigger, proceeding with deployment"
+            echo "should-deploy=true" >> $GITHUB_OUTPUT
+          fi
 
       - name: Debug AWS Account ID
+        if: steps.check-changes.outputs.should-deploy == 'true'
         run: |
           echo "AWS Account ID: ${{ vars.AWS_ACCOUNT_ID_DEV }}"
           echo "Expected ARN: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID_DEV }}:role/github-actions-dev"
 
       - name: Configure AWS credentials
+        if: steps.check-changes.outputs.should-deploy == 'true'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID_DEV }}:role/github-actions-dev
@@ -31,8 +68,14 @@ jobs:
           aws-region: us-east-1
 
       - name: Database deployment
+        if: steps.check-changes.outputs.should-deploy == 'true'
         run: |
           echo "Database dev deployment would run here"
           echo "Target: Dev environment"
           echo "This will include migration execution via Lambda"
-          echo "Changes detected in: database/"
+          echo "Trigger: ${{ github.event_name }}"
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            echo "Triggered by successful test completion"
+          else
+            echo "Changes detected in: database/"
+          fi

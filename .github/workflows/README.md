@@ -11,16 +11,42 @@ The Chore Garden project implements a modern CI/CD pipeline using GitHub Actions
 - **Secure authentication**: GitHub OIDC eliminates long-lived credentials
 - **Environment separation**: Development has automated deployment, production requires manual approval
 
-**Key Benefits:**
-- **Faster feedback**: Only affected components are built and deployed
-- **Reduced cost**: Unnecessary workflow runs are eliminated  
-- **Clear ownership**: Each workflow has a single responsibility
-- **Safer deployments**: Isolated failures don't affect other components
-- **Better observability**: Component-specific logs and metrics
+**Key Verification Points:**
+- **Sequential Triggering**: Each workflow only triggers from the previous one
+- **Test Gate**: Only tests can start the deployment chain
+- **Smart Filtering**: Each workflow checks for relevant changes
+- **Graceful Skipping**: No changes = successful skip (not failure)
+- **Failure Isolation**: Failed deployment stops the chain
+- **Manual Override**: Each workflow can be manually triggered
 
 The system uses GitHub OIDC for secure, temporary AWS authentication and follows infrastructure-as-code principles for consistency across environments.
 
 ## Workflows
+
+### Summary of deployment workflows
+
+Workflow Configuration:
+A. Tests (ci-tests.yml)
+✅ Triggers on push to dev/main branches
+✅ If tests fail → workflow fails, no downstream triggers
+✅ If tests pass → triggers Database deployment
+B. Database Deployment (deploy-database-dev.yml)
+✅ Triggers only on successful completion of "CI - Tests"
+✅ Has smart filtering: deploys only if database changes detected
+✅ If no changes → succeeds by skipping (doesn't fail)
+✅ If deployment fails → workflow fails, no downstream triggers
+✅ If succeeds → triggers Backend deployment
+C. Backend Deployment (deploy-backend-dev.yml)
+✅ Triggers only on successful completion of "Deploy Database - Development"
+✅ Has smart filtering: deploys only if backend changes detected
+✅ If no changes → succeeds by skipping (doesn't fail)
+✅ If deployment fails → workflow fails, no downstream triggers
+✅ If succeeds → triggers Frontend deployment
+D. Frontend Deployment (deploy-frontend-dev.yml)
+✅ Triggers only on successful completion of "Deploy Backend - Development"
+✅ Has smart filtering: deploys only if frontend changes detected
+✅ If no changes → succeeds by skipping (doesn't fail)
+✅ If deployment fails → workflow fails, chain stops
 
 ### `ci-tests.yml` - CI Tests
 
@@ -43,6 +69,8 @@ Deploys database changes (migrations, schema updates) to the development environ
 
 **Triggers:**
 - Pushes to `dev` branch with changes in `database/**`
+- Automatically after successful test completion (workflow_run from `CI - Tests`)
+  - **Smart Filtering**: Only deploys if database changes are detected
 - Manual workflow dispatch
 
 **Purpose:** Apply database schema changes and migrations to development environment
@@ -53,8 +81,9 @@ Deploys backend application to the development environment.
 
 **Triggers:**
 - Pushes to `dev` branch with changes in `backend/**`
-- Automatically after successful database deployment (workflow_run)
-- - NOTE: still checks for changes under `backend/**` and skips if there are none
+- Automatically after successful database deployment (workflow_run from `Deploy Database - Development`)
+- Automatically after successful test completion (workflow_run from `CI - Tests`)
+  - **Smart Filtering**: Only deploys if backend changes are detected
 - Manual workflow dispatch
 
 **Purpose:** Deploy backend application container to ECS development environment
@@ -65,8 +94,9 @@ Deploys frontend application to the development environment.
 
 **Triggers:**
 - Pushes to `dev` branch with changes in `frontend/**`
-- Automatically after successful backend deployment (workflow_run)
-- - NOTE: still checks for changes under `frontend/**` and skips if there are none
+- Automatically after successful backend deployment (workflow_run from `Deploy Backend - Development`)
+- Automatically after successful test completion (workflow_run from `CI - Tests`)
+  - **Smart Filtering**: Only deploys if frontend changes are detected
 - Manual workflow dispatch
 
 **Purpose:** Build and deploy React frontend to S3 development bucket with updated configuration
@@ -82,34 +112,57 @@ Deploys to the production environment (manual trigger only).
 
 ## Development Workflow
 
-The development workflow follows a component-based deployment strategy that only deploys what changes:
+The development workflow follows a **test-first, component-based deployment strategy** that ensures code quality before any deployments and only deploys components that have changed:
+
+### **Quality Gate: Tests Must Pass First**
+
+All deployments are gated behind successful test completion:
 
 1. **Create feature branch** from `dev`
 2. **Develop and commit** changes in specific component directories
 3. **Create PR** to `dev` branch
    - ✅ Triggers: `ci-tests.yml` runs tests
-   - 🚫 No deployments
+   - 🚫 No deployments until tests pass
 4. **Merge PR** into `dev`
-   - ✅ Triggers: `ci-tests.yml` runs tests
-   - ✅ Then: Component-specific deployment workflows run based on changed paths
+   - ✅ **Step 1**: `ci-tests.yml` runs tests (frontend + backend with database)
+   - ✅ **Step 2**: If tests pass, component-specific deployments run based on changed paths
+   - 🚫 **Step 2**: If tests fail, no deployments run
 
-**Component-Specific Deployment Flow:**
+### **Smart Deployment Flow (After Tests Pass)**
 
 **Database Changes (`database/**`):**
-- ✅ Triggers: `deploy-database-dev.yml` runs database migrations
-- 🔄 Then: `deploy-backend-dev.yml` runs (if backend exists)
-- 🔄 Then: `deploy-frontend-dev.yml` runs (config update)
+```
+Tests Pass ✅ → Database Deploy → Backend Check → Frontend Check
+                      ↓              ↓             ↓
+                   Migrations     Skip if no    Skip if no
+                    Applied       backend       frontend
+                                 changes       changes
+```
 
 **Backend Changes (`backend/**`):**
-- ✅ Triggers: `deploy-backend-dev.yml` runs backend deployment
-- 🔄 Then: `deploy-frontend-dev.yml` runs (config update)
+```
+Tests Pass ✅ → Database Check → Backend Deploy → Frontend Check
+                      ↓              ↓             ↓
+                  Skip if no      Container     Skip if no
+                  database        Updated       frontend
+                  changes                       changes
+```
 
 **Frontend Changes (`frontend/**`):**
-- ✅ Triggers: `deploy-frontend-dev.yml` runs frontend deployment only
+```
+Tests Pass ✅ → Database Check → Backend Check → Frontend Deploy
+                      ↓              ↓             ↓
+                  Skip if no      Skip if no     S3 Updated
+                  database        backend        + Config
+                  changes         changes        Generated
+```
 
 **Multi-Component Changes:**
-- Multiple workflows run in dependency order (database → backend → frontend)
-- Each workflow detects its relevant changes and deploys accordingly
+```
+Tests Pass ✅ → Database Deploy → Backend Deploy → Frontend Deploy
+                (if changed)      (if changed)     (if changed)
+```
+
 
 ## Production Deployment
 
@@ -150,11 +203,11 @@ For now infrastructure updates are NOT handled via the ci/cd pipeline. That may 
 | `test` | Run backend and frontend tests with temporary PostgreSQL |
 
 ### Development Deployment (Component-Based)
-| Workflow | Purpose | Triggers | Status |
-|----------|---------|----------|--------|
-| `deploy-database-dev.yml` | Apply database migrations to dev | `database/**` changes, manual | 🚧 **Placeholder** |
-| `deploy-backend-dev.yml` | Deploy backend to dev ECS | `backend/**` changes, after database, manual | 🚧 **Placeholder** |
-| `deploy-frontend-dev.yml` | Deploy frontend to dev S3 | `frontend/**` changes, after backend, manual | ✅ **Active** |
+| Workflow | Purpose | Triggers | Dependencies | Status |
+|----------|---------|----------|--------------|--------|
+| `deploy-database-dev.yml` | Apply database migrations to dev | `database/**` changes, after tests pass, manual | Tests ✅ | 🚧 **Placeholder** |
+| `deploy-backend-dev.yml` | Deploy backend to dev ECS | `backend/**` changes, after database or tests, manual | Tests ✅, Database (optional) | 🚧 **Placeholder** |
+| `deploy-frontend-dev.yml` | Deploy frontend to dev S3 | `frontend/**` changes, after backend or tests, manual | Tests ✅, Backend (optional) | ✅ **Active** |
 
 ### Production Deployment (`deploy-prod.yml`)
 | Job | Purpose | Status |
@@ -203,9 +256,48 @@ The workflows require these secrets and variables to be configured in repository
 
 #### Workflow Dependencies
 
-- `deploy-dev.yml` depends on successful completion of `ci-tests.yml` on `dev` branch
-- `deploy-prod.yml` runs independently (manual trigger only)
-- All workflows can be triggered manually via workflow dispatch if needed
+**Test-First Architecture:**
+All development deployments are gated behind successful test completion:
+
+```mermaid
+graph TD
+    A[CI - Tests] --> A1{Tests Pass?}
+    A1 -->|❌ Fail| A2[STOP - No Deployments]
+    A1 -->|✅ Pass| B[Deploy Database - Development]
+    
+    B --> B1{Database Changes?}
+    B1 -->|No Changes| B2[Skip Deployment ✅]
+    B1 -->|Has Changes| B3{Database Deploy Success?}
+    B2 --> C[Deploy Backend - Development]
+    B3 -->|❌ Fail| B4[STOP - No Backend/Frontend]
+    B3 -->|✅ Success| C
+    
+    C --> C1{Backend Changes?}
+    C1 -->|No Changes| C2[Skip Deployment ✅]
+    C1 -->|Has Changes| C3{Backend Deploy Success?}
+    C2 --> D[Deploy Frontend - Development]
+    C3 -->|❌ Fail| C4[STOP - No Frontend]
+    C3 -->|✅ Success| D
+    
+    D --> D1{Frontend Changes?}
+    D1 -->|No Changes| D2[Skip Deployment ✅]
+    D1 -->|Has Changes| D3{Frontend Deploy Success?}
+    D3 -->|❌ Fail| D4[STOP - Chain Ends]
+    D3 -->|✅ Success| D5[Chain Complete ✅]
+    D2 --> D5
+```
+
+**Dependency Rules:**
+- ✅ **Tests** must pass before any deployment
+- 🔄 **Database** → **Backend** → **Frontend** sequence (when relevant)
+- 🧠 **Smart filtering** prevents unnecessary deployments
+- 🚫 **Failed tests** block all deployments
+- ✋ **Manual triggers** bypass test requirements (for debugging)
+
+**Trigger Priority:**
+1. **Direct Path Changes**: `frontend/**` → Direct frontend deployment (after tests)
+2. **Dependency Chain**: Database changes → All downstream components check for changes
+3. **Manual Override**: `workflow_dispatch` always runs (regardless of changes)
 
 #### Current Implementation Status
 
@@ -262,7 +354,7 @@ The workflows require these secrets and variables to be configured in repository
 - **Safe**: Production deployments are completely separate and manual-only
 - **Secure**: Uses GitHub OIDC for AWS authentication (no long-lived credentials)
 
-#### Future Enhancements
+#### Possible Future Enhancements
 
 - Implement backend deployment automation (ECS container updates)
 - Implement database migration automation (ops-lambda integration)
