@@ -1,0 +1,85 @@
+name: Deploy Backend - Development
+
+on:
+  push:
+    branches: [dev]
+    paths: ['backend/**']
+  workflow_run:
+    workflows: ["Deploy Database - Development"]
+    types: [completed]
+    branches: [dev]
+  workflow_dispatch:  # for manual testing
+
+jobs:
+  deploy-backend-dev:
+    runs-on: ubuntu-latest
+    # Only run if triggered by push to backend, manual dispatch, or successful database deployment
+    if: >
+      github.event_name == 'workflow_dispatch' || 
+      github.event_name == 'push' || 
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    
+    permissions:
+      id-token: write   # This is required for requesting the JWT
+      contents: read    # This is required for actions/checkout
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history for path checking
+
+      - name: Check for backend changes
+        id: check-changes
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            # For workflow_run triggers, check if there are backend changes in the last commit
+            echo "Checking for backend changes in workflow_run trigger..."
+            
+            # Get the commit SHA from the triggering workflow
+            TRIGGER_SHA="${{ github.event.workflow_run.head_sha }}"
+            echo "Trigger SHA: $TRIGGER_SHA"
+            
+            # Check if there are changes in backend/ directory
+            BACKEND_CHANGES=$(git diff --name-only $TRIGGER_SHA~1 $TRIGGER_SHA | grep -E '^backend/' || true)
+            
+            if [ -n "$BACKEND_CHANGES" ]; then
+              echo "Backend changes detected:"
+              echo "$BACKEND_CHANGES"
+              echo "should-deploy=true" >> $GITHUB_OUTPUT
+            else
+              echo "No backend changes detected, skipping deployment"
+              echo "should-deploy=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            # For push and workflow_dispatch, always deploy
+            echo "Direct trigger (push/manual), proceeding with deployment"
+            echo "should-deploy=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Debug AWS Account ID
+        if: steps.check-changes.outputs.should-deploy == 'true'
+        run: |
+          echo "AWS Account ID: ${{ vars.AWS_ACCOUNT_ID_DEV }}"
+          echo "Expected ARN: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID_DEV }}:role/github-actions-dev"
+
+      - name: Configure AWS credentials
+        if: steps.check-changes.outputs.should-deploy == 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID_DEV }}:role/github-actions-dev
+          role-session-name: github-actions-dev-backend
+          aws-region: us-east-1
+
+      - name: Backend deployment
+        if: steps.check-changes.outputs.should-deploy == 'true'
+        run: |
+          echo "Backend dev deployment would run here"
+          echo "Target: Dev environment"
+          echo "This will include ECS deployment and container updates"
+          echo "Trigger: ${{ github.event_name }}"
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            echo "Triggered by database deployment completion"
+          else
+            echo "Changes detected in: backend/"
+          fi
