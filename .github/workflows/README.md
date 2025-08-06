@@ -5,7 +5,8 @@
 The Chore Garden project implements a modern CI/CD pipeline using GitHub Actions with a component-based deployment strategy. The system is designed around the principle of deploying only what changes, optimizing for speed, efficiency, and reliability.
 
 **Core Philosophy:**
-- **Component isolation**: Database, backend, and frontend deployments are separate workflows
+- **Component isolation**: Database, backend, and frontend deployments are separate
+- **Test first**: All deployments are gated by tests running and passing
 - **Conditional triggering**: Path-based and change-based, workflows only run when relevant code changes (e.g. frontend deployment)
 - **Dependency sequencing**: Database → Backend → Frontend deployment order
 - **Secure authentication**: GitHub OIDC eliminates long-lived credentials
@@ -80,26 +81,26 @@ Deploys database changes (migrations, schema updates) to the development environ
 Deploys backend application to the development environment.
 
 **Triggers:**
-- Pushes to `dev` branch with changes in `backend/**`
 - Automatically after successful database deployment (workflow_run from `Deploy Database - Development`)
-- Automatically after successful test completion (workflow_run from `CI - Tests`)
   - **Smart Filtering**: Only deploys if backend changes are detected
 - Manual workflow dispatch
 
 **Purpose:** Deploy backend application container to ECS development environment
+
+**Post-Deployment:** Automatically updates frontend configuration with latest API endpoints
 
 ### `deploy-frontend-dev.yml` - Frontend Development Deployment
 
 Deploys frontend application to the development environment.
 
 **Triggers:**
-- Pushes to `dev` branch with changes in `frontend/**`
 - Automatically after successful backend deployment (workflow_run from `Deploy Backend - Development`)
-- Automatically after successful test completion (workflow_run from `CI - Tests`)
   - **Smart Filtering**: Only deploys if frontend changes are detected
 - Manual workflow dispatch
 
 **Purpose:** Build and deploy React frontend to S3 development bucket with updated configuration
+
+**Post-Deployment:** Refreshes frontend configuration to ensure latest settings
 
 ### `deploy-prod.yml` - Production Deployment
 
@@ -141,28 +142,47 @@ Tests Pass ✅ → Database Deploy → Backend Check → Frontend Check
 
 **Backend Changes (`backend/**`):**
 ```
-Tests Pass ✅ → Database Check → Backend Deploy → Frontend Check
-                      ↓              ↓             ↓
-                  Skip if no      Container     Skip if no
-                  database        Updated       frontend
-                  changes                       changes
+Tests Pass ✅ → Database Check → Backend Deploy → Update Config → Frontend Check
+                      ↓              ↓              ↓             ↓
+                  Skip if no      Container     Config.json   Skip if no
+                  database        Updated       Refreshed     frontend
+                  changes                                     changes
 ```
 
 **Frontend Changes (`frontend/**`):**
 ```
-Tests Pass ✅ → Database Check → Backend Check → Frontend Deploy
-                      ↓              ↓             ↓
-                  Skip if no      Skip if no     S3 Updated
-                  database        backend        + Config
-                  changes         changes        Generated
+Tests Pass ✅ → Database Check → Backend Check → Frontend Deploy → Update Config
+                      ↓              ↓             ↓              ↓
+                  Skip if no      Skip if no     S3 Updated     Config.json
+                  database        backend        + Build        Refreshed
+                  changes         changes        Complete
 ```
 
 **Multi-Component Changes:**
 ```
-Tests Pass ✅ → Database Deploy → Backend Deploy → Frontend Deploy
-                (if changed)      (if changed)     (if changed)
+Tests Pass ✅ → Database Deploy → Backend Deploy → Update Config → Frontend Deploy → Update Config
+                (if changed)      (if changed)     (after BE)     (if changed)     (after FE)
 ```
 
+## Reusable Actions
+
+### `update-frontend-config` - Frontend Configuration Generator
+
+**Location**: `.github/actions/update-frontend-config/action.yml`
+
+**Purpose**: Generates and uploads frontend configuration file (`config.json`) to S3 with current AWS resource endpoints.
+
+**Inputs:**
+- `environment` (required): Environment name (dev, prod)
+- `aws-region` (optional): AWS region (default: us-east-1)
+- `s3-bucket` (required): S3 bucket name for frontend
+
+**What it does:**
+1. Queries AWS API Gateway for backend API endpoint
+2. Queries AWS Cognito for User Pool ID and Client ID
+3. Constructs Cognito domain URL
+4. Generates `config.json` with all frontend configuration
+5. Uploads configuration to specified S3 bucket
 
 ## Production Deployment
 
@@ -205,9 +225,9 @@ For now infrastructure updates are NOT handled via the ci/cd pipeline. That may 
 ### Development Deployment (Component-Based)
 | Workflow | Purpose | Triggers | Dependencies | Status |
 |----------|---------|----------|--------------|--------|
-| `deploy-database-dev.yml` | Apply database migrations to dev | `database/**` changes, after tests pass, manual | Tests ✅ | 🚧 **Placeholder** |
-| `deploy-backend-dev.yml` | Deploy backend to dev ECS | `backend/**` changes, after database or tests, manual | Tests ✅, Database (optional) | 🚧 **Placeholder** |
-| `deploy-frontend-dev.yml` | Deploy frontend to dev S3 | `frontend/**` changes, after backend or tests, manual | Tests ✅, Backend (optional) | ✅ **Active** |
+| `deploy-database-dev.yml` | Apply database migrations to dev | after tests pass, manual | Tests ✅ | 🚧 **Placeholder** |
+| `deploy-backend-dev.yml` | Deploy backend to dev ECS + update config | after database, manual | Tests ✅, Database ✅ | 🚧 **Placeholder** |
+| `deploy-frontend-dev.yml` | Deploy frontend to dev S3 + refresh config | after backend, manual | Tests ✅, Database ✅, Backend ✅ | ✅ **Active** |
 
 ### Production Deployment (`deploy-prod.yml`)
 | Job | Purpose | Status |
@@ -351,6 +371,7 @@ graph TD
 - **Independent scaling**: Each component can evolve its deployment strategy separately
 - **Better debugging**: Component-specific logs make troubleshooting easier
 - **Cost optimization**: Reduced compute time and AWS resource usage
+- **Automatic config updates**: Frontend configuration refreshed after backend deployments
 - **Safe**: Production deployments are completely separate and manual-only
 - **Secure**: Uses GitHub OIDC for AWS authentication (no long-lived credentials)
 
