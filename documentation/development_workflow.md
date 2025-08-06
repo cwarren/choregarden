@@ -24,7 +24,7 @@ NOTE: 'working branch' is a general term that covers features, tasks, fixes, etc
    ```powershell
    git checkout dev
    git pull origin dev
-   git checkout -b YYYYMMDD-X-branch-name
+   git checkout -b YYYYMMDD-XX-branch-name
    git push branch-name
    ```
 *NOTE*: YYYYMMDD is the date the branch was created, XX starts at 1 and increments for additional branches made on the same day. Even though branches are already timestamped in their metadata, having this prefix makes things much easier to comprehend when scanning a list of branch names.
