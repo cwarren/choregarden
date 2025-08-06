@@ -4,14 +4,14 @@ latest done:
 
 in progress:
 * make FE deploy trigger only when there are changes in the /frontend folder tree
-* deploy BE via ci-cd (to dev environment)
 
 next steps:
 * update the start-dev-resources script to create all the "aws_apigatewayv2_route"s
-* iron out CI/CD for deployments & Terraform
-* * deploy BE via ci-cd (to dev environment)
-* * DB change deployment and migration via CI-CD (to dev environment)
-* * op lambdas deployments
+* * also, do NOT spin up the bastion automatically (but create a separate script for that)
+* deploy BE via ci-cd (to dev environment)
+* DB change deployment and migration via CI-CD (to dev environment)
+* op lambdas deployments
+* frontend status page - for "Protected API ping, with code" - if not logged in skip the attempt and indicate why in the status page text
 
 longer term:
 * add documentation for manual deployments (FE, BE, DB, infra, ops lambdas)
