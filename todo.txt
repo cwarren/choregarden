@@ -1,13 +1,11 @@
 latest done:
-* setting up github OIDC for my deployments
-* deploy FE via ci-cd (to dev environment)
-
-in progress:
 * make FE deploy trigger only when there are changes in the /frontend folder tree
-
-next steps:
 * update the start-dev-resources script to create all the "aws_apigatewayv2_route"s
 * * also, do NOT spin up the bastion automatically (but create a separate script for that)
+
+in progress:
+
+next steps:
 * deploy BE via ci-cd (to dev environment)
 * DB change deployment and migration via CI-CD (to dev environment)
 * op lambdas deployments
