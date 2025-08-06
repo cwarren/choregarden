@@ -79,7 +79,13 @@ see [setup_dev_environment.md](setup_dev_environment.md) if you're just starting
    ```powershell
    .\scripts\start-dev-resources.ps1
    ```
-This spins up all the AWS resources needed.
+This spins up all the AWS resources needed EXCEPT a bastion instance. The bastion instance is handled separately via
+   ```powershell
+   .\scripts\start-bastion-for-dev.ps1
+   ```
+because in many development sessions the bastion is not needed.
+
+NOTE: the standard stop-dev-resources script will stop the bastion instance (in addition to everything else), but if you want to stop only bastion and not the other services, use `stop-bastion-for-dev.ps1`.
 
 2. **Setup local services (in local services terminal)**
    ```powershell
@@ -99,7 +105,7 @@ if needed, start frontend (in separate terminal) - this is useful when doing pur
    ```powershell
    .\scripts\stop-dev-resources.ps1
    ```
-This spins down all the AWS resources that incur on-going, passive costs
+This spins down all the AWS resources (INCLUDING the bastion instance) that incur on-going, passive costs
 
 ## Testing
 

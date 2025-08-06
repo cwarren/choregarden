@@ -1,6 +1,6 @@
 # Start Dev Resources Script
 # This script starts all dev resources: re-creates VPC interface endpoints (via Terraform),
-# starts RDS, ECS backend, and Bastion EC2 instance.
+# starts RDS, and ECS backend.
 # Resource config is loaded from dev-resource-ids.ps1 (which should be in .gitignore)
 
 # NOTE: this is intended to be run after `stop-dev-resources.ps1` to bring the dev environment
@@ -11,13 +11,16 @@
 # installed. If translating this to work in another environment (like Bash), the commands and syntax will
 # need to be adjusted accordingly.
 
+# NOTE: For bastion instance management, use the separate `start-bastion-for-dev.ps1` script.
+
 # TO RUN:
 # 1. navigate to the scripts directory
 # 2. run: .\start-dev-resources.ps1
 
 $idsPath = Join-Path $PSScriptRoot 'dev-resource-ids.ps1'
 if (Test-Path $idsPath) {
-    $config = Get-Content $idsPath | Out-String | Invoke-Expression
+    # Load the config file to set environment variables
+    Get-Content $idsPath | Out-String | Invoke-Expression
 } else {
     Write-Error "Missing dev-resource-ids.ps1. Please create it with your resource IDs."
     exit 1
@@ -25,25 +28,19 @@ if (Test-Path $idsPath) {
 
 # Assign config values to local variables for clarity
 $region = $env:CHOREGARDEN_REGION
-$profile = $env:CHOREGARDEN_PROFILE
+$awsProfile = $env:CHOREGARDEN_PROFILE
 $rdsInstanceId = $env:CHOREGARDEN_RDS_INSTANCE_ID
 $ecsCluster = $env:CHOREGARDEN_ECS_CLUSTER
 $ecsService = $env:CHOREGARDEN_ECS_SERVICE
 
-# Auto-discover Bastion instance ID by Name tag
-$bastionNameTag = $env:CHOREGARDEN_BASTION_NAME_TAG
-$bastionInstanceId = aws ec2 describe-instances --region $region --profile $profile --filters "Name=tag:Name,Values=$bastionNameTag" "Name=instance-state-name,Values=running,stopped" | ConvertFrom-Json | Select-Object -ExpandProperty Reservations | ForEach-Object { $_.Instances } | Where-Object { $_ } | Select-Object -First 1 -ExpandProperty InstanceId
-
 Write-Host "Region: $region"
-Write-Host "Profile: $profile"
+Write-Host "Profile: $awsProfile"
 Write-Host "RDS Instance ID: $rdsInstanceId"
 Write-Host "ECS Cluster: $ecsCluster"
 Write-Host "ECS Service: $ecsService"
-Write-Host "Bastion Name Tag: $bastionNameTag"
-Write-Host "Bastion Instance ID: $bastionInstanceId"
 
 # 1. Re-create VPC endpoints, VPC Link, NLB, and API Gateway integrations/routes with Terraform
-$env:AWS_PROFILE = $profile
+$env:AWS_PROFILE = $awsProfile
 cd $PSScriptRoot/../infrastructure/envs/dev
 terraform apply -auto-approve `
   "-target=aws_vpc_endpoint.secretsmanager" `
@@ -55,19 +52,20 @@ terraform apply -auto-approve `
   "-target=module.app_backend.aws_lb_target_group.backend" `
   "-target=module.app_backend.aws_lb_listener.backend" `
   "-target=module.api_gateway.aws_apigatewayv2_integration.backend_vpc" `
-  "-target=module.api_gateway.aws_apigatewayv2_route.ping" `
-  "-target=module.api_gateway.aws_apigatewayv2_route.pingdeep"
+  "-target=module.api_gateway.aws_apigatewayv2_route.public" `
+  "-target=module.api_gateway.aws_apigatewayv2_route.protected" `
+  "-target=module.api_gateway.aws_apigatewayv2_route.options"
 cd $PSScriptRoot
 
 # 2. Start RDS instance
-aws rds start-db-instance --db-instance-identifier $rdsInstanceId --region $region --profile $profile | Out-Host
+aws rds start-db-instance --db-instance-identifier $rdsInstanceId --region $region --profile $awsProfile | Out-Host
 
 # 3. Scale up ECS service
-aws ecs update-service --cluster $ecsCluster --service $ecsService --desired-count 1 --region $region --profile $profile | Out-Host
+aws ecs update-service --cluster $ecsCluster --service $ecsService --desired-count 1 --region $region --profile $awsProfile | Out-Host
 
-# 4. Start Bastion EC2 instance
-if ($bastionInstanceId) {
-    aws ec2 start-instances --instance-ids $bastionInstanceId --region $region --profile $profile | Out-Host
-} else {
-    Write-Warning "No Bastion instance found with Name tag '$bastionNameTag'"
-}
+Write-Host "Dev resources started successfully!"
+Write-Host "- VPC endpoints and API Gateway routes: Created/Updated"
+Write-Host "- RDS instance: Starting"
+Write-Host "- ECS service: Scaled to 1 instance"
+Write-Host ""
+Write-Host "To start the bastion instance for database access, run: .\start-bastion-for-dev.ps1"
