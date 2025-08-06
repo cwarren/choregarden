@@ -1,11 +1,8 @@
 name: Deploy Backend - Development
 
 on:
-  push:
-    branches: [dev]
-    paths: ['backend/**']
   workflow_run:
-    workflows: ["Deploy Database - Development", "CI - Tests"]
+    workflows: ["Deploy Database - Development"]
     types: [completed]
     branches: [dev]
   workflow_dispatch:  # for manual testing
@@ -13,10 +10,9 @@ on:
 jobs:
   deploy-backend-dev:
     runs-on: ubuntu-latest
-    # Only run if triggered by push to backend, manual dispatch, or successful database deployment
+    # Only run if triggered by manual dispatch or successful workflow completion
     if: >
       github.event_name == 'workflow_dispatch' || 
-      github.event_name == 'push' || 
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     
     permissions:
@@ -52,8 +48,8 @@ jobs:
               echo "should-deploy=false" >> $GITHUB_OUTPUT
             fi
           else
-            # For push and workflow_dispatch, always deploy
-            echo "Direct trigger (push/manual), proceeding with deployment"
+            # For workflow_dispatch, always deploy
+            echo "Manual trigger, proceeding with deployment"
             echo "should-deploy=true" >> $GITHUB_OUTPUT
           fi
 
