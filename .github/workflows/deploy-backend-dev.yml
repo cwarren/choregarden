@@ -5,7 +5,7 @@ on:
     branches: [dev]
     paths: ['backend/**']
   workflow_run:
-    workflows: ["Deploy Database - Development"]
+    workflows: ["Deploy Database - Development", "CI - Tests"]
     types: [completed]
     branches: [dev]
   workflow_dispatch:  # for manual testing

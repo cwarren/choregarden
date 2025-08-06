@@ -4,7 +4,7 @@ import { pool } from '../config/database';
 export const ping = (req: Request, res: Response) => {
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
   console.log(`Received /api/ping request from ${ip}`);
-  res.json({ message: 'pong, BE20250806.1' });
+  res.json({ message: 'pong, BE20250806.2' });
 };
 
 export const pingDeep = (req: Request, res: Response) => {
