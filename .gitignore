@@ -69,3 +69,4 @@ migration-output.json
 *.tmp
 ORIG_*
 aside*
+*-legacy.*

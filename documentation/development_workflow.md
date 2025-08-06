@@ -24,14 +24,16 @@ NOTE: 'working branch' is a general term that covers features, tasks, fixes, etc
    ```powershell
    git checkout dev
    git pull origin dev
-   git checkout -b branch-name
+   git checkout -b YYYYMMDD-XX-branch-name
    git push branch-name
    ```
+*NOTE*: YYYYMMDD is the date the branch was created, XX starts at 1 and increments for additional branches made on the same day. Even though branches are already timestamped in their metadata, having this prefix makes things much easier to comprehend when scanning a list of branch names.
+
 *NOTE*: branch names should use a consistent pattern, though I haven't yet decided what that is. Some options:
 - the primary name should be clearly descriptive towards the outcome / change that this branch delivers
 - work identifier prefixes - if using Jira this would be the issue key, or simimilar for other project managment tooling; I'm not yet using such tooling for this project (for now still just a dynamic todo.txt), but if/when I do then this is critical (checks would be built into commit hooks)
 - feature/, task/, and fix/ prefixes - I'm not yet sure the distinction is useful
-- datetime prefixes - YYYYMMDDHHMM - not sure this really adds anything, as branches are already timestamped
+
 
 
 2. **Develop on the working branch**

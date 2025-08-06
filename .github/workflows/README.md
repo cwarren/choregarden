@@ -1,6 +1,24 @@
 # GitHub Actions Workflows
 
-This directory contains the CI/CD workflows for the Chore Garden project.
+## Overview
+
+The Chore Garden project implements a modern CI/CD pipeline using GitHub Actions with a component-based deployment strategy. The system is designed around the principle of deploying only what changes, optimizing for speed, efficiency, and reliability.
+
+**Core Philosophy:**
+- **Component isolation**: Database, backend, and frontend deployments are separate workflows
+- **Conditional triggering**: Path-based and change-based, workflows only run when relevant code changes (e.g. frontend deployment)
+- **Dependency sequencing**: Database → Backend → Frontend deployment order
+- **Secure authentication**: GitHub OIDC eliminates long-lived credentials
+- **Environment separation**: Development has automated deployment, production requires manual approval
+
+**Key Benefits:**
+- **Faster feedback**: Only affected components are built and deployed
+- **Reduced cost**: Unnecessary workflow runs are eliminated  
+- **Clear ownership**: Each workflow has a single responsibility
+- **Safer deployments**: Isolated failures don't affect other components
+- **Better observability**: Component-specific logs and metrics
+
+The system uses GitHub OIDC for secure, temporary AWS authentication and follows infrastructure-as-code principles for consistency across environments.
 
 ## Workflows
 
@@ -19,14 +37,39 @@ To manually run tests:
 
 **Purpose:** Validate code quality before any deployment
 
-### `deploy-dev.yml` - Development Deployment
+### `deploy-database-dev.yml` - Database Development Deployment
 
-Deploys to the development environment after successful tests.
+Deploys database changes (migrations, schema updates) to the development environment.
 
 **Triggers:**
-- Automatically when `ci-tests.yml` completes successfully on `dev` branch
+- Pushes to `dev` branch with changes in `database/**`
+- Manual workflow dispatch
 
-**Purpose:** Continuous deployment to development environment
+**Purpose:** Apply database schema changes and migrations to development environment
+
+### `deploy-backend-dev.yml` - Backend Development Deployment
+
+Deploys backend application to the development environment.
+
+**Triggers:**
+- Pushes to `dev` branch with changes in `backend/**`
+- Automatically after successful database deployment (workflow_run)
+- - NOTE: still checks for changes under `backend/**` and skips if there are none
+- Manual workflow dispatch
+
+**Purpose:** Deploy backend application container to ECS development environment
+
+### `deploy-frontend-dev.yml` - Frontend Development Deployment
+
+Deploys frontend application to the development environment.
+
+**Triggers:**
+- Pushes to `dev` branch with changes in `frontend/**`
+- Automatically after successful backend deployment (workflow_run)
+- - NOTE: still checks for changes under `frontend/**` and skips if there are none
+- Manual workflow dispatch
+
+**Purpose:** Build and deploy React frontend to S3 development bucket with updated configuration
 
 ### `deploy-prod.yml` - Production Deployment
 
@@ -39,15 +82,34 @@ Deploys to the production environment (manual trigger only).
 
 ## Development Workflow
 
+The development workflow follows a component-based deployment strategy that only deploys what changes:
+
 1. **Create feature branch** from `dev`
-2. **Develop and commit** changes
+2. **Develop and commit** changes in specific component directories
 3. **Create PR** to `dev` branch
    - ✅ Triggers: `ci-tests.yml` runs tests
    - 🚫 No deployments
 4. **Merge PR** into `dev`
    - ✅ Triggers: `ci-tests.yml` runs tests
-   - ✅ Then: `deploy-dev.yml` deploys to development (if tests pass)
-   - 🚀 Automatically deploys to development environment
+   - ✅ Then: Component-specific deployment workflows run based on changed paths
+
+**Component-Specific Deployment Flow:**
+
+**Database Changes (`database/**`):**
+- ✅ Triggers: `deploy-database-dev.yml` runs database migrations
+- 🔄 Then: `deploy-backend-dev.yml` runs (if backend exists)
+- 🔄 Then: `deploy-frontend-dev.yml` runs (config update)
+
+**Backend Changes (`backend/**`):**
+- ✅ Triggers: `deploy-backend-dev.yml` runs backend deployment
+- 🔄 Then: `deploy-frontend-dev.yml` runs (config update)
+
+**Frontend Changes (`frontend/**`):**
+- ✅ Triggers: `deploy-frontend-dev.yml` runs frontend deployment only
+
+**Multi-Component Changes:**
+- Multiple workflows run in dependency order (database → backend → frontend)
+- Each workflow detects its relevant changes and deploys accordingly
 
 ## Production Deployment
 
@@ -87,12 +149,12 @@ For now infrastructure updates are NOT handled via the ci/cd pipeline. That may 
 |-----|---------|
 | `test` | Run backend and frontend tests with temporary PostgreSQL |
 
-### Development Deployment (`deploy-dev.yml`)
-| Job | Purpose | Status |
-|-----|---------|--------|
-| `deploy-frontend-dev` | Deploy frontend to dev S3 bucket | ✅ **Active** |
-| `deploy-backend-dev` | Deploy backend to dev ECS | 🚧 **Placeholder** |
-| `deploy-db-dev` | Run database migrations on dev | 🚧 **Placeholder** |
+### Development Deployment (Component-Based)
+| Workflow | Purpose | Triggers | Status |
+|----------|---------|----------|--------|
+| `deploy-database-dev.yml` | Apply database migrations to dev | `database/**` changes, manual | 🚧 **Placeholder** |
+| `deploy-backend-dev.yml` | Deploy backend to dev ECS | `backend/**` changes, after database, manual | 🚧 **Placeholder** |
+| `deploy-frontend-dev.yml` | Deploy frontend to dev S3 | `frontend/**` changes, after backend, manual | ✅ **Active** |
 
 ### Production Deployment (`deploy-prod.yml`)
 | Job | Purpose | Status |
@@ -149,9 +211,15 @@ The workflows require these secrets and variables to be configured in repository
 
 | Component | Dev Deployment | Prod Deployment |
 |-----------|----------------|-----------------|
-| Frontend | ✅ **Active** - S3 sync + Terraform config update | 🚧 **Placeholder** |
-| Backend | 🚧 **Placeholder** | 🚧 **Placeholder** |
-| Database | 🚧 **Placeholder** | 🚧 **Placeholder** |
+| Database | 🚧 **Placeholder** - Migration execution via Lambda | 🚧 **Placeholder** |
+| Backend | 🚧 **Placeholder** - ECS container deployment | 🚧 **Placeholder** |
+| Frontend | ✅ **Active** - S3 sync + config generation | 🚧 **Placeholder** |
+
+**Component Workflow Status:**
+- **Database workflow**: Created with path filtering (`database/**`)
+- **Backend workflow**: Created with path filtering (`backend/**`) + database dependency
+- **Frontend workflow**: Active with path filtering (`frontend/**`) + backend dependency
+- **Legacy workflow**: `deploy-dev-legacy.yml` preserved for reference
 
 #### Deployment Architecture
 
@@ -184,19 +252,23 @@ The workflows require these secrets and variables to be configured in repository
 
 #### Benefits of This Structure
 
-- **Clear separation**: Each workflow has a single responsibility
-- **Efficient**: Tests run once, multiple deployments can reference results
+- **Component isolation**: Each deployment workflow handles a single responsibility
+- **Efficient resource usage**: Only changed components trigger deployments
+- **Clear dependency management**: Database → Backend → Frontend sequence is enforced
+- **Faster feedback loops**: Frontend-only changes don't rebuild backend/database
+- **Independent scaling**: Each component can evolve its deployment strategy separately
+- **Better debugging**: Component-specific logs make troubleshooting easier
+- **Cost optimization**: Reduced compute time and AWS resource usage
 - **Safe**: Production deployments are completely separate and manual-only
-- **Maintainable**: Test logic is defined once, not duplicated
-- **Scalable**: Easy to add new environments (staging, UAT, etc.)
 - **Secure**: Uses GitHub OIDC for AWS authentication (no long-lived credentials)
 
 #### Future Enhancements
 
-- Implement backend deployment automation
-- Implement database migration automation  
-- Add production environment configuration
+- Implement backend deployment automation (ECS container updates)
+- Implement database migration automation (ops-lambda integration)
+- Add production environment configuration with approval gates
+- Create reusable frontend config action for cross-environment consistency
 - Add deployment notifications (Slack, email)
-- Add rollback capabilities
-- Add deployment approval gates
+- Add rollback capabilities for each component
 - Add staging environment workflows
+- Implement blue/green deployments for zero-downtime updates

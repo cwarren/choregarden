@@ -1,0 +1,38 @@
+name: Deploy Database - Development
+
+on:
+  push:
+    branches: [dev]
+    paths: ['database/**']
+  workflow_dispatch:  # for manual testing
+
+jobs:
+  deploy-database-dev:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      id-token: write   # This is required for requesting the JWT
+      contents: read    # This is required for actions/checkout
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Debug AWS Account ID
+        run: |
+          echo "AWS Account ID: ${{ vars.AWS_ACCOUNT_ID_DEV }}"
+          echo "Expected ARN: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID_DEV }}:role/github-actions-dev"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID_DEV }}:role/github-actions-dev
+          role-session-name: github-actions-dev-database
+          aws-region: us-east-1
+
+      - name: Database deployment
+        run: |
+          echo "Database dev deployment would run here"
+          echo "Target: Dev environment"
+          echo "This will include migration execution via Lambda"
+          echo "Changes detected in: database/"
