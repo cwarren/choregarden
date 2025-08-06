@@ -1,0 +1,70 @@
+name: 'Update Frontend Config'
+description: 'Generates and uploads frontend configuration file to S3'
+inputs:
+  environment:
+    description: 'Environment name (dev, prod)'
+    required: true
+  aws-region:
+    description: 'AWS region'
+    required: false
+    default: 'us-east-1'
+  s3-bucket:
+    description: 'S3 bucket name for frontend (e.g., choregarden-frontend-dev)'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Generate frontend config
+      shell: bash
+      run: |
+        echo "Generating frontend configuration for ${{ inputs.environment }} environment..."
+        
+        # Get required values from AWS with debug output
+        echo "Fetching API Gateway information..."
+        API_URL=$(aws apigatewayv2 get-apis --query 'Items[?contains(Name, `choregarden-${{ inputs.environment }}`)].ApiEndpoint' --output text 2>&1)
+        echo "API_URL result: $API_URL"
+        
+        # If the name-based query fails, try getting the first API
+        if [ -z "$API_URL" ] || [ "$API_URL" = "None" ]; then
+          echo "Name-based query failed, trying to get first API..."
+          API_URL=$(aws apigatewayv2 get-apis --query 'Items[0].ApiEndpoint' --output text 2>&1)
+          echo "First API result: $API_URL"
+        fi
+        
+        echo "Fetching Cognito User Pool information..."
+        USER_POOL_ID=$(aws cognito-idp list-user-pools --max-results 50 --query 'UserPools[?contains(Name, `choregarden-${{ inputs.environment }}`)].Id' --output text 2>&1)
+        echo "USER_POOL_ID result: $USER_POOL_ID"
+        
+        if [ -n "$USER_POOL_ID" ] && [ "$USER_POOL_ID" != "None" ]; then
+          echo "Fetching Cognito Client ID..."
+          COGNITO_CLIENT_ID=$(aws cognito-idp list-user-pool-clients --user-pool-id "$USER_POOL_ID" --query 'UserPoolClients[0].ClientId' --output text 2>&1)
+          echo "COGNITO_CLIENT_ID result: $COGNITO_CLIENT_ID"
+          
+          echo "Checking for Cognito domain..."
+          # Simplified approach - just construct the domain from the user pool ID
+          POOL_SUFFIX=$(echo $USER_POOL_ID | cut -d'_' -f2 | tr '[:upper:]' '[:lower:]')
+          COGNITO_DOMAIN="choregarden-${{ inputs.environment }}-${POOL_SUFFIX}.auth.${{ inputs.aws-region }}.amazoncognito.com"
+          echo "COGNITO_DOMAIN constructed: $COGNITO_DOMAIN"
+        else
+          echo "No Cognito User Pool found or invalid result"
+          COGNITO_CLIENT_ID=""
+          COGNITO_DOMAIN=""
+        fi
+        
+        # Create config.json with flat structure
+        cat > config.json << EOF
+        {
+          "REACT_APP_API_BASE_URL": "$API_URL",
+          "COGNITO_CLIENT_ID": "$COGNITO_CLIENT_ID",
+          "COGNITO_DOMAIN": "$COGNITO_DOMAIN"
+        }
+        EOF
+        
+        echo "Generated config.json:"
+        cat config.json
+        
+        # Upload to S3
+        echo "Uploading config.json to S3 bucket: ${{ inputs.s3-bucket }}"
+        aws s3 cp config.json s3://${{ inputs.s3-bucket }}/config.json
+        echo "Frontend configuration updated successfully for ${{ inputs.environment }} environment"

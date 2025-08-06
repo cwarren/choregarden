@@ -77,5 +77,16 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_run" ]; then
             echo "Triggered by database deployment completion"
           else
-            echo "Changes detected in: backend/"
+            echo "Manual deployment triggered"
           fi
+
+      - name: Update frontend config
+        if: steps.check-changes.outputs.should-deploy == 'true'
+        # uses: ./.github/actions/update-frontend-config
+        # with:
+        #   environment: 'dev'
+        #   s3-bucket: 'choregarden-frontend-dev'
+        run: |
+          echo "Update to frontend config would run here"
+          echo "Target: Dev environment"
+          echo "S3 Bucket: choregarden-frontend-dev"
