@@ -6,7 +6,7 @@ The Chore Garden project implements a modern CI/CD pipeline using GitHub Actions
 
 **Core Philosophy:**
 - **Component isolation**: Database, backend, and frontend deployments are separate workflows
-- **Conditional triggering**: Path-based and change-based, workflows only run when relevant code changes (e.g. frontend deplo)
+- **Conditional triggering**: Path-based and change-based, workflows only run when relevant code changes (e.g. frontend deployment)
 - **Dependency sequencing**: Database → Backend → Frontend deployment order
 - **Secure authentication**: GitHub OIDC eliminates long-lived credentials
 - **Environment separation**: Development has automated deployment, production requires manual approval
